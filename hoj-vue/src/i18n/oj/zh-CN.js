@@ -109,7 +109,6 @@ export const m = {
   Update_Password: '更新密码',
   Update_Email: '更新邮箱',
   Update_Mobile: '更新手机号',
-  Captcha: '验证码',
   The_new_password_does_not_change: '新密码未变动',
   The_new_email_does_not_change: '新邮箱未变动',
   The_new_mobile_does_not_change: '新手机号未变动',
@@ -225,7 +224,6 @@ export const m = {
   Problem_ID: '题目ID',
   Total: '总数',
   AC_Rate: 'AC 通过率',
-  AC: '通过',
   Score: '分数',
 
   // /views/oj/problem/problemList.vue
@@ -475,7 +473,6 @@ export const m = {
 
   // /views/oj/contest/children/ContestRejudgeAdmin.vue
   Contest_Rejudge: '比赛重新测评',
-  ID: 'ID',
   Rejudge_All: '重测',
   Contest_Rejudge_Tips: '您确定重测所有提交记录?',
   Rejudge_successfully: '重测成功',
@@ -706,7 +703,6 @@ export const m = {
 
   // /views/oj/group/GroupDiscussionList.vue
   No_Discussion: '暂无讨论',
-  Problem_Discussion:'题目讨论',
 
   // /views/oj/group/GroupProblemList.vue
   Cancel_Admin:'取消管理',

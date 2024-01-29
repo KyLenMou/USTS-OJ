@@ -109,7 +109,6 @@ export const m = {
   Update_Password: 'Update Password',
   Update_Email: 'Update Email',
   Update_Mobile: 'Update Mobile',
-  Captcha: 'Captcha',
   The_new_password_does_not_change: 'The new password doesn\'t change.',
   The_new_email_does_not_change: 'The new email doesn\'t change.',
   The_new_mobile_does_not_change: 'The new mobile doesn\'t change.',
@@ -224,7 +223,6 @@ export const m = {
   Problem_ID: 'Problem ID',
   Total: 'Total',
   AC_Rate: 'AC Rate',
-  AC: 'AC',
   Score: 'Score',
 
   // /views/oj/problem/problemList.vue
@@ -713,7 +711,6 @@ export const m = {
   
   // /views/oj/group/GroupDiscussionList.vue
   No_Discussion: 'No Discussion',
-  Problem_Discussion:'Problem Discussion',
 
   // /views/oj/group/GroupProblemList.vue
   Cancel_Admin:'Cancel Admin',
