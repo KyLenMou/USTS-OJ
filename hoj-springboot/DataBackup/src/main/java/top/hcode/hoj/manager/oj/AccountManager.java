@@ -1,12 +1,15 @@
 package top.hcode.hoj.manager.oj;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Validator;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import io.swagger.models.auth.In;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,13 +18,20 @@ import org.springframework.util.StringUtils;
 import top.hcode.hoj.common.exception.StatusFailException;
 import top.hcode.hoj.common.exception.StatusSystemErrorException;
 import top.hcode.hoj.dao.problem.ProblemEntityService;
+import top.hcode.hoj.dao.problem.TagClassificationEntityService;
+import top.hcode.hoj.dao.problem.TagEntityService;
 import top.hcode.hoj.dao.user.*;
 import top.hcode.hoj.manager.email.EmailManager;
+import top.hcode.hoj.mapper.JudgeMapper;
+import top.hcode.hoj.mapper.ProblemTagMapper;
 import top.hcode.hoj.pojo.dto.ChangeEmailDTO;
 import top.hcode.hoj.pojo.dto.ChangePasswordDTO;
 import top.hcode.hoj.pojo.dto.CheckUsernameOrEmailDTO;
 import top.hcode.hoj.pojo.entity.judge.Judge;
 import top.hcode.hoj.pojo.entity.problem.Problem;
+import top.hcode.hoj.pojo.entity.problem.ProblemTag;
+import top.hcode.hoj.pojo.entity.problem.Tag;
+import top.hcode.hoj.pojo.entity.problem.TagClassification;
 import top.hcode.hoj.pojo.entity.user.Role;
 import top.hcode.hoj.pojo.entity.user.Session;
 import top.hcode.hoj.pojo.entity.user.UserAcproblem;
@@ -43,6 +53,14 @@ import java.util.stream.Collectors;
  */
 @Component
 public class AccountManager {
+    @Autowired
+    private ProblemTagMapper problemTagMapper;
+    @Autowired
+    private TagEntityService tagEntityService;
+    @Autowired
+    private TagClassificationEntityService tagClassificationEntityService;
+    @Autowired
+    private JudgeMapper judgeMapper;
 
     @Autowired
     private RedisUtils redisUtils;
@@ -125,6 +143,7 @@ public class AccountManager {
      * @param uid
      * @MethodName getUserHomeInfo
      * @Description 前端userHome用户个人主页的数据请求，主要是返回解决题目数，AC的题目列表，提交总数，AC总数，Rating分，
+     *              新增: 尚未涉足的标签,未通过的题目, todo 能力知识热力图 比赛统计 标签和难度统计
      * @Since 2021/01/07
      */
     public UserHomeVO getUserHomeInfo(String uid, String username) throws StatusFailException {
@@ -175,7 +194,114 @@ public class AccountManager {
         if (recentSession != null) {
             userHomeInfo.setRecentLoginTime(recentSession.getGmtCreate());
         }
+
+        /**
+         *  2024-1-29 23:01:27 查询未通过的题目
+         */
+        // 查对应的所有提交记录
+        QueryWrapper<Judge> judgeQueryWrapper = new QueryWrapper<>();
+        judgeQueryWrapper.eq("uid",userHomeInfo.getUid()).select("pid","display_pid","status");
+        List<Judge> judgeList = judgeMapper.selectList(judgeQueryWrapper);
+
+        // 统计未通过的题目(凡不是accepted均算作未通过)
+        // 定义一个map<pid,status>,遍历list,map里没有pid就新增一个键值对,如果有pid: 如果status不为0则更新, 否则不更新
+        // 最后遍历map, 把status不为0的pid统计出来
+        Map<String,Integer> map = new HashMap<>();
+        for (Judge j : judgeList) {
+            String displayPid = j.getDisplayPid();
+            Integer status = j.getStatus();
+            if (map.get(displayPid) == null) {
+                map.put(displayPid,status);
+            } else {
+                if (map.get(displayPid) != 0) {
+                    map.put(displayPid, status);
+                }
+            }
+        }
+        List<String> unsolvedProblems = new ArrayList<>();
+        for (String displayPid : map.keySet()){
+            if (map.get(displayPid) == 0) continue;
+            unsolvedProblems.add(displayPid);
+        }
+        userHomeInfo.setUnsolvedList(unsolvedProblems);
+
+        /**
+         * 2024-1-30 16:19:53 统计未涉足的标签(仅主题库)
+         */
+        // 获取用户已通过题目的pid
+        List<Long> acPids = new ArrayList<>();
+        acProblemList.forEach(acProblem -> {
+            acPids.add(acProblem.getPid());
+        });
+        Collections.sort(acPids);
+
+        // 获取所有题目对应的标签
+        QueryWrapper<Tag> tagQueryWrapper = new QueryWrapper<>();
+        tagQueryWrapper.eq("oj","ME") .isNull("gid").orderByAsc("id");
+        List<Tag> tagList = tagEntityService.list(tagQueryWrapper);
+        List<Long> untouchedTids = tagList.stream().map(Tag::getId).collect(Collectors.toList());
+
+        // 获取已涉足标签tid
+        List<Long> touchedTids = null;
+        if (!CollUtil.isEmpty(acPids)) {
+            QueryWrapper<ProblemTag> touchedTagsQueryWrapper = new QueryWrapper<>();
+            touchedTagsQueryWrapper.select("distinct tid").in("pid", acPids).orderByAsc("tid");
+            List<ProblemTag> touchedTags = problemTagMapper.selectList(touchedTagsQueryWrapper);
+            touchedTids = touchedTags.stream().map(ProblemTag::getTid).collect(Collectors.toList());
+        }
+        // 获取用户未涉足的标签tid
+        // 看了源码,使用ArrayList的话复杂度是O(n*n),这里标签总数不会很大,复杂度能接受,优化可以使用双指针
+        if (!CollUtil.isEmpty(touchedTids)) untouchedTids.removeAll(touchedTids);
+
+        // 用户未涉足的标签列表
+        List<Tag> untouchedTags = new ArrayList<>();
+        for (int i = 0, j = 0; i < untouchedTids.size() && j < tagList.size(); j++, i++) {
+            while (j < tagList.size() && ! tagList.get(j).getId().equals(untouchedTids.get(i))) j++;
+            if (j >= tagList.size()) break;
+            untouchedTags.add(tagList.get(j));
+        }
+
+        // 标签分类
+        QueryWrapper<TagClassification> tagClassificationQueryWrapper = new QueryWrapper<>();
+        tagClassificationQueryWrapper.eq("oj","ME").orderByAsc("`rank`");
+        List<TagClassification> classificationList = tagClassificationEntityService.list(tagClassificationQueryWrapper);
+
+        // 未涉足的标签和分类
+        List<ProblemTagVO> problemTagVOList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(classificationList)) {
+            ProblemTagVO problemTagVo = new ProblemTagVO();
+            problemTagVo.setTagList(untouchedTags);
+            problemTagVOList.add(problemTagVo);
+        } else {
+            classificationList.forEach(c -> {
+                List<Tag> tags = new ArrayList<>();
+                for (Tag t : untouchedTags) {
+                    if (c.getId().equals(t.getTcid())) {
+                        tags.add(t);
+                    }
+                }
+                ProblemTagVO problemTagVO = new ProblemTagVO();
+                problemTagVO.setTagList(tags);
+                problemTagVO.setClassification(c);
+                if (!tags.isEmpty())  problemTagVOList.add(problemTagVO);
+            });
+        }
+
+        // 未分类
+        List<Tag> tags = new ArrayList<>();
+        for (Tag t : untouchedTags) {
+            if (t.getTcid() == null) {
+                tags.add(t);
+            }
+        }
+        ProblemTagVO problemTagVO = new ProblemTagVO();
+        problemTagVO.setTagList(tags);
+        if (!tags.isEmpty()) problemTagVOList.add(problemTagVO);
+
+        userHomeInfo.setUntouchedTags(problemTagVOList);
+
         return userHomeInfo;
+
     }
 
     private UserHomeProblemVO convertProblemVO(Problem problem) {

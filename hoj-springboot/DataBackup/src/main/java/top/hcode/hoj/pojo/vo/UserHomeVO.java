@@ -68,4 +68,10 @@ public class UserHomeVO {
     @ApiModelProperty(value = "最近上线时间")
     private Date recentLoginTime;
 
+    @ApiModelProperty(value = "未通过的题目")
+    private List<String> unsolvedList;
+
+    @ApiModelProperty(value = "未涉足的标签")
+    private List<ProblemTagVO> untouchedTags;
+
 }
