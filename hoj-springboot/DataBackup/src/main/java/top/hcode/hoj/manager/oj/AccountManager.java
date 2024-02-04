@@ -143,7 +143,7 @@ public class AccountManager {
      * @param uid
      * @MethodName getUserHomeInfo
      * @Description 前端userHome用户个人主页的数据请求，主要是返回解决题目数，AC的题目列表，提交总数，AC总数，Rating分，
-     *              新增: 尚未涉足的标签,未通过的题目, todo 能力知识热力图 比赛统计 标签和难度统计
+     *              新增: 尚未涉足的标签,未通过的题目,标签难度统计
      * @Since 2021/01/07
      */
     public UserHomeVO getUserHomeInfo(String uid, String username) throws StatusFailException {
@@ -171,18 +171,25 @@ public class AccountManager {
         List<UserAcproblem> acProblemList = userAcproblemEntityService.list(queryWrapper);
         List<Long> pidList = acProblemList.stream().map(UserAcproblem::getPid).collect(Collectors.toList());
 
-        List<String> disPlayIdList = new LinkedList<>();
+        // 标签难度统计
+        TagDifficultyStatisticVO tagDifficultyStatisticVO = new TagDifficultyStatisticVO();
 
-        if (pidList.size() > 0) {
+        List<String> disPlayIdList = new LinkedList<>();
+        if (!CollUtil.isEmpty(pidList)) {
             QueryWrapper<Problem> problemQueryWrapper = new QueryWrapper<>();
             problemQueryWrapper.select("id", "problem_id", "difficulty");
             problemQueryWrapper.in("id", pidList);
-            List<Problem> problems = problemEntityService.list(problemQueryWrapper);
-            Map<Integer, List<UserHomeProblemVO>> map = problems.stream()
+            List<Problem> acProblems = problemEntityService.list(problemQueryWrapper);
+            Map<Integer, List<UserHomeProblemVO>> map = acProblems.stream()
                     .map(this::convertProblemVO)
                     .collect(Collectors.groupingBy(UserHomeProblemVO::getDifficulty));
             userHomeInfo.setSolvedGroupByDifficulty(map);
-            disPlayIdList = problems.stream().map(Problem::getProblemId).collect(Collectors.toList());
+
+            // 难度统计
+            Map<Integer,Long> difficultyStatistics = acProblems.stream().collect(Collectors.groupingBy(Problem::getDifficulty, Collectors.counting()));
+            tagDifficultyStatisticVO.setDifficultyStatistics(difficultyStatistics);
+
+            disPlayIdList = acProblems.stream().map(Problem::getProblemId).collect(Collectors.toList());
         }
         userHomeInfo.setSolvedList(disPlayIdList);
         QueryWrapper<Session> sessionQueryWrapper = new QueryWrapper<>();
@@ -229,11 +236,7 @@ public class AccountManager {
          * 2024-1-30 16:19:53 统计未涉足的标签(仅主题库)
          */
         // 获取用户已通过题目的pid
-        List<Long> acPids = new ArrayList<>();
-        acProblemList.forEach(acProblem -> {
-            acPids.add(acProblem.getPid());
-        });
-        Collections.sort(acPids);
+        Collections.sort(pidList);
 
         // 获取所有题目对应的标签
         QueryWrapper<Tag> tagQueryWrapper = new QueryWrapper<>();
@@ -241,17 +244,31 @@ public class AccountManager {
         List<Tag> tagList = tagEntityService.list(tagQueryWrapper);
         List<Long> untouchedTids = tagList.stream().map(Tag::getId).collect(Collectors.toList());
 
-        // 获取已涉足标签tid
-        List<Long> touchedTids = null;
-        if (!CollUtil.isEmpty(acPids)) {
+        // 获取已涉足(已通过的题目)标签tid
+        List<Long> acTids = null;
+        if (!CollUtil.isEmpty(pidList)) {
             QueryWrapper<ProblemTag> touchedTagsQueryWrapper = new QueryWrapper<>();
-            touchedTagsQueryWrapper.select("distinct tid").in("pid", acPids).orderByAsc("tid");
+            touchedTagsQueryWrapper.select("tid").in("pid", pidList).orderByAsc("tid");
             List<ProblemTag> touchedTags = problemTagMapper.selectList(touchedTagsQueryWrapper);
-            touchedTids = touchedTags.stream().map(ProblemTag::getTid).collect(Collectors.toList());
+            Map<Long,Long> tagIdStatistics = touchedTags.stream().collect(Collectors.groupingBy(ProblemTag::getTid, Collectors.counting()));
+
+            // 标签统计
+            Map<String,Long> tagStatistics = new HashMap<>();
+            for (Tag t : tagList) {
+                if (tagIdStatistics.get(t.getId()) != null) {
+                    tagStatistics.put(t.getName(),tagIdStatistics.get(t.getId()));
+                }
+            }
+            tagDifficultyStatisticVO.setTagStatistics(tagStatistics);
+            acTids = touchedTags.stream().map(ProblemTag::getTid).distinct().collect(Collectors.toList());
         }
+        // 标签难度统计
+        userHomeInfo.setTagDifficultyStatistic(tagDifficultyStatisticVO);
+
+
         // 获取用户未涉足的标签tid
         // 看了源码,使用ArrayList的话复杂度是O(n*n),这里标签总数不会很大,复杂度能接受,优化可以使用双指针
-        if (!CollUtil.isEmpty(touchedTids)) untouchedTids.removeAll(touchedTids);
+        if (!CollUtil.isEmpty(acTids)) untouchedTids.removeAll(acTids);
 
         // 用户未涉足的标签列表
         List<Tag> untouchedTags = new ArrayList<>();
@@ -642,5 +659,4 @@ public class AccountManager {
         authInfoVO.setRoles(roles.stream().map(Role::getRole).collect(Collectors.toList()));
         return authInfoVO;
     }
-
 }

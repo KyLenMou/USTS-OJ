@@ -74,4 +74,7 @@ public class UserHomeVO {
     @ApiModelProperty(value = "未涉足的标签")
     private List<ProblemTagVO> untouchedTags;
 
+    @ApiModelProperty(value = "标签难度统计")
+    private TagDifficultyStatisticVO tagDifficultyStatistic;
+
 }
