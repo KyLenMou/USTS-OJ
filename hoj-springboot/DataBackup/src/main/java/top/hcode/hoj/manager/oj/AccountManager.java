@@ -8,8 +8,6 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import io.swagger.models.auth.In;
-import org.apache.poi.ss.formula.functions.T;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -143,7 +141,7 @@ public class AccountManager {
      * @param uid
      * @MethodName getUserHomeInfo
      * @Description 前端userHome用户个人主页的数据请求，主要是返回解决题目数，AC的题目列表，提交总数，AC总数，Rating分，
-     *              新增: 尚未涉足的标签,未通过的题目,标签难度统计
+     *              新增: 尚未涉足的标签,未通过的题目,标签难度统计,能力达成度模型数据
      * @Since 2021/01/07
      */
     public UserHomeVO getUserHomeInfo(String uid, String username) throws StatusFailException {
@@ -169,29 +167,32 @@ public class AccountManager {
                 .orderByAsc("submit_id");
 
         List<UserAcproblem> acProblemList = userAcproblemEntityService.list(queryWrapper);
-        List<Long> pidList = acProblemList.stream().map(UserAcproblem::getPid).collect(Collectors.toList());
+        // 获得去重的pidList
+        List<Long> pidList = acProblemList.stream().map(UserAcproblem::getPid).distinct().collect(Collectors.toList());
 
         // 标签难度统计
         TagDifficultyStatisticVO tagDifficultyStatisticVO = new TagDifficultyStatisticVO();
 
-        List<String> disPlayIdList = new LinkedList<>();
+        // ! 如果用户没有过题, 返回为null, 但是前端需要一个数组而不是null, 否则前端会报错
+        userHomeInfo.setSolvedList(new LinkedList<>());
         if (!CollUtil.isEmpty(pidList)) {
             QueryWrapper<Problem> problemQueryWrapper = new QueryWrapper<>();
             problemQueryWrapper.select("id", "problem_id", "difficulty");
             problemQueryWrapper.in("id", pidList);
             List<Problem> acProblems = problemEntityService.list(problemQueryWrapper);
-            Map<Integer, List<UserHomeProblemVO>> map = acProblems.stream()
-                    .map(this::convertProblemVO)
-                    .collect(Collectors.groupingBy(UserHomeProblemVO::getDifficulty));
-            userHomeInfo.setSolvedGroupByDifficulty(map);
+            // 前端不需要了
+            // Map<Integer, List<UserHomeProblemVO>> map = acProblems.stream()
+            //         .map(this::convertProblemVO)
+            //         .collect(Collectors.groupingBy(UserHomeProblemVO::getDifficulty));
+            // userHomeInfo.setSolvedGroupByDifficulty(map);
 
             // 难度统计
             Map<Integer,Long> difficultyStatistics = acProblems.stream().collect(Collectors.groupingBy(Problem::getDifficulty, Collectors.counting()));
             tagDifficultyStatisticVO.setDifficultyStatistics(difficultyStatistics);
 
-            disPlayIdList = acProblems.stream().map(Problem::getProblemId).collect(Collectors.toList());
+            List<String> disPlayIdList = acProblems.stream().map(Problem::getProblemId).collect(Collectors.toList());
+            if (disPlayIdList != null) userHomeInfo.setSolvedList(disPlayIdList);
         }
-        userHomeInfo.setSolvedList(disPlayIdList);
         QueryWrapper<Session> sessionQueryWrapper = new QueryWrapper<>();
         sessionQueryWrapper.eq("uid", userHomeInfo.getUid())
                 .orderByDesc("gmt_create")
@@ -202,59 +203,138 @@ public class AccountManager {
             userHomeInfo.setRecentLoginTime(recentSession.getGmtCreate());
         }
 
-        /**
-         *  2024-1-29 23:01:27 查询未通过的题目
-         */
         // 查对应的所有提交记录
         QueryWrapper<Judge> judgeQueryWrapper = new QueryWrapper<>();
         judgeQueryWrapper.eq("uid",userHomeInfo.getUid()).select("pid","display_pid","status");
         List<Judge> judgeList = judgeMapper.selectList(judgeQueryWrapper);
 
-        // 统计未通过的题目(凡不是accepted均算作未通过)
-        // 定义一个map<pid,status>,遍历list,map里没有pid就新增一个键值对,如果有pid: 如果status不为0则更新, 否则不更新
-        // 最后遍历map, 把status不为0的pid统计出来
-        Map<String,Integer> map = new HashMap<>();
-        for (Judge j : judgeList) {
-            String displayPid = j.getDisplayPid();
-            Integer status = j.getStatus();
-            if (map.get(displayPid) == null) {
-                map.put(displayPid,status);
-            } else {
-                if (map.get(displayPid) != 0) {
-                    map.put(displayPid, status);
-                }
+        // 所有tag(只包括标签顺序为1的)
+        QueryWrapper<Tag> tagQueryWrapper = new QueryWrapper<>();
+        tagQueryWrapper.eq("oj","ME").isNull("gid").orderByAsc("id");
+        List<Tag> allTagList = tagEntityService.list(tagQueryWrapper);
+        List<Tag> tagList = allTagList.stream().filter(t -> (t.getTcid() != null && t.getTcid() == 1)).collect(Collectors.toList());
+        List<Long> tagIdList = tagList.stream().map(Tag::getId).collect(Collectors.toList());
+        // tag-id -> tag-name
+        Map<Long,String> tidNameMap = tagList.stream().collect(Collectors.toMap(Tag::getId,Tag::getName));
+        // 所有p -> tag
+        QueryWrapper<ProblemTag> problemTagsQueryWrapper = new QueryWrapper<>();
+        problemTagsQueryWrapper.in("tid",tagIdList).orderByAsc("tid");
+        List<ProblemTag> tagProblem = problemTagMapper.selectList(problemTagsQueryWrapper);
+        // p-id -> List<tag-id>
+        Map<Long,List<Long>> pidTidMap = tagProblem.stream().collect(Collectors.groupingBy(ProblemTag::getPid,Collectors.mapping(ProblemTag::getTid,Collectors.toList())));
+        // p-id -> List<tag-name>
+        Map<Long,List<String>> pidTagNameMap = new HashMap<>();
+        for (Long pid : pidTidMap.keySet()) {
+            List<Long> tidList = pidTidMap.get(pid);
+            List<String> tagNameList = new ArrayList<>();
+            for (Long tid : tidList) {
+                tagNameList.add(tidNameMap.get(tid));
+            }
+            pidTagNameMap.put(pid,tagNameList);
+        }
+
+        // 所有p(id和difficulty)
+        QueryWrapper<Problem> problemQueryWrapper = new QueryWrapper<>();
+        problemQueryWrapper.select("id","difficulty");
+        List<Problem> problemList = problemEntityService.list(problemQueryWrapper);
+        // p-id -> p-difficulty
+        Map<Long,Integer> pidDifficultyMap = problemList.stream().collect(Collectors.toMap(Problem::getId,Problem::getDifficulty));
+
+        // 初始化标签难度模型数据结构
+        Map<String,Map<Integer,int[]>> tagDifficultyModelMap = new HashMap<>();
+        for (Tag t : tagList) {
+            Map<Integer,int[]> map = new HashMap<>();
+            // 三个难度初始化
+            map.put(0,new int[]{0,0});
+            map.put(1,new int[]{0,0});
+            map.put(2,new int[]{0,0});
+            tagDifficultyModelMap.put(t.getName(),map);
+        }
+        // 得到所有题目
+        QueryWrapper<Problem> allProblemQueryWrapper = new QueryWrapper<>();
+        allProblemQueryWrapper.select("id","difficulty");
+        List<Problem> allProblemList = problemEntityService.list(allProblemQueryWrapper);
+        // 把题目加入到tagDifficultyModelMap(统计总题数)
+        for (Problem p : allProblemList) {
+            if (pidTagNameMap.get(p.getId()) == null) continue;
+            for (String tagName : pidTagNameMap.get(p.getId())) {
+                Map<Integer,int[]> map = tagDifficultyModelMap.get(tagName);
+                if (map == null) continue;
+                int[] num = map.get(p.getDifficulty());
+                num[1]++;
             }
         }
+        // 统计过题数
+        for (Long pid : pidList) {
+            if (pidTagNameMap.get(pid) == null) continue;
+            for (String tagName : pidTagNameMap.get(pid)) {
+                Map<Integer,int[]> map = tagDifficultyModelMap.get(tagName);
+                if (map == null) continue;
+                int[] num = map.get(pidDifficultyMap.get(pid));
+                num[0]++;
+            }
+        }
+        // 标签对应的通过率
+        Map<String, int[]> tagACRateModelMap = new HashMap<>();
+        for (Tag t : tagList) {
+            tagACRateModelMap.put(t.getName(),new int[]{0,0});
+        }
+
+        Map<String,Integer> unsolvedMap = new HashMap<>();
+        for (Judge j : judgeList) {
+            // 统计未通过题目的逻辑
+            String displayPid = j.getDisplayPid();
+            Integer status = j.getStatus();
+            if (unsolvedMap.get(displayPid) == null) {
+                unsolvedMap.put(displayPid,status);
+            } else {
+                if (unsolvedMap.get(displayPid) != 0) {
+                    unsolvedMap.put(displayPid, status);
+                }
+            }
+            // 统计通过率(已过题数/(已过题的总失败提交数+已过题数))
+            Long pid = j.getPid();
+            List<String> tags = pidTagNameMap.get(pid);
+            if (pidTagNameMap.get(pid) == null) continue;
+            for (String tagName : tags) {
+                int[] acRate = tagACRateModelMap.get(tagName);
+                if (acRate == null) continue;
+                if (status == 0) {
+                    acRate[1]++;
+                }
+                else {
+                    acRate[0]++;
+                }
+                tagACRateModelMap.put(tagName,acRate);
+            }
+
+        }
+
+        // 得到模型数据
+        userHomeInfo.setModelData(getModelData(tagList,tagDifficultyModelMap,tagACRateModelMap));
+
         List<String> unsolvedProblems = new ArrayList<>();
-        for (String displayPid : map.keySet()){
-            if (map.get(displayPid) == 0) continue;
+        for (String displayPid : unsolvedMap.keySet()){
+            if (unsolvedMap.get(displayPid) == 0) continue;
             unsolvedProblems.add(displayPid);
         }
         userHomeInfo.setUnsolvedList(unsolvedProblems);
 
-        /**
-         * 2024-1-30 16:19:53 统计未涉足的标签(仅主题库)
-         */
         // 获取用户已通过题目的pid
         Collections.sort(pidList);
 
         // 获取所有题目对应的标签
-        QueryWrapper<Tag> tagQueryWrapper = new QueryWrapper<>();
-        tagQueryWrapper.eq("oj","ME") .isNull("gid").orderByAsc("id");
-        List<Tag> tagList = tagEntityService.list(tagQueryWrapper);
-        List<Long> untouchedTids = tagList.stream().map(Tag::getId).collect(Collectors.toList());
+        // 这里的数据由于上方代码逻辑需要重复使用,已移至上方
 
         // 获取已涉足(已通过的题目)标签tid
         List<Long> acTids = null;
         if (!CollUtil.isEmpty(pidList)) {
-            QueryWrapper<ProblemTag> touchedTagsQueryWrapper = new QueryWrapper<>();
-            touchedTagsQueryWrapper.select("tid").in("pid", pidList).orderByAsc("tid");
-            List<ProblemTag> touchedTags = problemTagMapper.selectList(touchedTagsQueryWrapper);
+            List<ProblemTag> touchedTags = tagProblem.stream().filter(t -> pidList.contains(t.getPid())).collect(Collectors.toList());
             Map<Long,Long> tagIdStatistics = touchedTags.stream().collect(Collectors.groupingBy(ProblemTag::getTid, Collectors.counting()));
 
             // 标签统计
             Map<String,Long> tagStatistics = new HashMap<>();
-            for (Tag t : tagList) {
+            for (Tag t : allTagList) {
                 if (tagIdStatistics.get(t.getId()) != null) {
                     tagStatistics.put(t.getName(),tagIdStatistics.get(t.getId()));
                 }
@@ -268,14 +348,15 @@ public class AccountManager {
 
         // 获取用户未涉足的标签tid
         // 看了源码,使用ArrayList的话复杂度是O(n*n),这里标签总数不会很大,复杂度能接受,优化可以使用双指针
+        List<Long> untouchedTids = allTagList.stream().map(Tag::getId).collect(Collectors.toList());
         if (!CollUtil.isEmpty(acTids)) untouchedTids.removeAll(acTids);
 
         // 用户未涉足的标签列表
         List<Tag> untouchedTags = new ArrayList<>();
-        for (int i = 0, j = 0; i < untouchedTids.size() && j < tagList.size(); j++, i++) {
-            while (j < tagList.size() && ! tagList.get(j).getId().equals(untouchedTids.get(i))) j++;
-            if (j >= tagList.size()) break;
-            untouchedTags.add(tagList.get(j));
+        for (int i = 0, j = 0; i < untouchedTids.size() && j < allTagList.size(); j++, i++) {
+            while (j < allTagList.size() && ! allTagList.get(j).getId().equals(untouchedTids.get(i))) j++;
+            if (j >= allTagList.size()) break;
+            untouchedTags.add(allTagList.get(j));
         }
 
         // 标签分类
@@ -318,7 +399,35 @@ public class AccountManager {
         userHomeInfo.setUntouchedTags(problemTagVOList);
 
         return userHomeInfo;
+    }
 
+    private ModelDataVO getModelData(List<Tag> tagList, Map<String, Map<Integer, int[]>> tagDifficultyModelMap, Map<String, int[]> tagACRateModelMap) {
+        ModelDataVO modelDataVO = new ModelDataVO();
+        // y轴数据即为tagList的name
+        List<String> yAxisData = tagList.stream().map(Tag::getName).collect(Collectors.toList());
+        modelDataVO.setYaxisData(yAxisData);
+        // 坐标数据
+        List<ModelAxisData> data = new ArrayList<>();
+        for (int i = 0; i < tagList.size(); i++) {
+            Map<Integer, int[]> map = tagDifficultyModelMap.get(tagList.get(i).getName());
+            int[] easy = map.get(0);
+            int[] medium = map.get(1);
+            int[] hard = map.get(2);
+            int ac = easy[0] + medium[0] + hard[0];
+            int num = easy[1] + medium[1] + hard[1];
+            if (easy[0] > 0 && easy[1] > 0) data.add(new ModelAxisData(0, i, (double) easy[0] / easy[1]));
+            if (medium[0] > 0 && medium[1] > 0) data.add(new ModelAxisData(1, i, (double) medium[0] / medium[1]));
+            if (hard[0] > 0 && hard[1] > 0) data.add(new ModelAxisData(2, i, (double) hard[0] / hard[1]));
+
+            int[] arr = tagACRateModelMap.get(tagList.get(i).getName());
+            if (arr[1] > 0) {
+                data.add(new ModelAxisData(3, i, (double) arr[1] / (arr[0] + arr[1])));
+            }
+
+            if (ac > 0 && num > 0) data.add(new ModelAxisData(4, i, (double) ac / num));
+        }
+        modelDataVO.setData(data);
+        return modelDataVO;
     }
 
     private UserHomeProblemVO convertProblemVO(Problem problem) {
