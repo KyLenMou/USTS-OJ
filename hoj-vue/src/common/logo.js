@@ -1,16 +1,15 @@
-export const LOGO = 
-"          _    _  _____ ____  _____  ______    \n"+
-"         | |  | |/ ____/ __ \|  __ \|  ____|   \n"+
-"         | |__| | |   | |  | | |  | | |__      \n"+
-"         |  __  | |   | |  | | |  | |  __|     \n"+
-"         | |  | | |___| |__| | |__| | |____    \n"+
-"         |_|  |_|\_____\____/|_____/|______|   \n"+
-"              Hcode Online Judge(HOJ)"+"\n"+
-"                 @Author Himit_ZH"+"\n"+
-"                 @Last Update 20231209"+"\n"+
-"                QQ Group: 598587305"+"\n"+
+export const LOGO =
+"  _   _  ____  _____  ____           ___       _ \n" +
+" | | | |/ ___||_   _|/ ___|         / _ \\     | |\n" +
+" | | | |\\___ \\  | |  \\___ \\  _____ | | | | _  | |\n" +
+" | |_| | ___) | | |   ___) ||_____|| |_| || |_| |\n" +
+"  \\___/ |____/  |_|  |____/         \\___/  \\___/ \n" +
+"            USTS Online Judge (USTS-OJ)"+"\n"+
+"                 Author: KyLen"+"\n"+
+"              Email: kkkylen@qq.com"+"\n"+
+"                 QQ: 2729269812"+"\n"+
 "    ->Github<- https://www.github.com/HimitZH/HOJ"+"\n"+
 "    ->Gitee<-  https://gitee.com/himitzh0730/hoj";
 
 export const MOTTO = 
-"         Welcome to Use HOJ, Dream in Code!";
+"         Welcome to Use USTS-OJ, Dream in Code!";

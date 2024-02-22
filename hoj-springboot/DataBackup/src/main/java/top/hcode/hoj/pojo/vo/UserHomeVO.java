@@ -62,8 +62,9 @@ public class UserHomeVO {
     @ApiModelProperty(value = "已解决题目列表")
     private List<String> solvedList;
 
-    @ApiModelProperty(value = "难度=>[P1000,P1001]")
-    private Map<Integer, List<UserHomeProblemVO>> solvedGroupByDifficulty;
+    // 前端不需要了
+    // @ApiModelProperty(value = "难度=>[P1000,P1001]")
+    // private Map<Integer, List<UserHomeProblemVO>> solvedGroupByDifficulty;
 
     @ApiModelProperty(value = "最近上线时间")
     private Date recentLoginTime;
@@ -77,4 +78,9 @@ public class UserHomeVO {
     @ApiModelProperty(value = "标签难度统计")
     private TagDifficultyStatisticVO tagDifficultyStatistic;
 
+    @ApiModelProperty(value = "能力达成度模型分析数据")
+    private ModelDataVO modelData;
+
+    @ApiModelProperty(value = "个性化推荐题目")
+    private List<RecommendProblemVO> recommendProblems;
 }

@@ -158,6 +158,15 @@ function getLevelColor(difficulty) {
     }
   }
 }
+function getLevelPureColor(difficulty) {
+  if (difficulty != undefined && difficulty != null) {
+    if (PROBLEM_LEVEL[difficulty]) {
+      return (
+          PROBLEM_LEVEL[difficulty]['color']
+      );
+    }
+  }
+}
 function getLevelName(difficulty) {
   if (
     difficulty != undefined &&
@@ -208,6 +217,7 @@ export default {
   stringToExamples:stringToExamples,
   examplesToString:examplesToString,
   getLevelColor:getLevelColor,
+  getLevelPureColor:getLevelPureColor,
   getLevelName:getLevelName,
   isFocusModePage:isFocusModePage,
   getFocusModeOriPage:getFocusModeOriPage,

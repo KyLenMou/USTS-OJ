@@ -45,7 +45,9 @@ const cdn = {
       "https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/moment.js/2.29.1/moment.min.js",
       "https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/moment.js/2.29.1/locale/zh-cn.min.js",
       "https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/moment.js/2.29.1/locale/en-gb.min.js",
-      "https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/echarts/4.9.0-rc.1/echarts.min.js",
+      // 更新了echarts的版本,理论上vue-echarts也应该更新,但是会出现毁灭性变更,需要修改一定量的代码来适配新版本,暂时不使用新版本
+      // 注意,echarts更新到v5后vue-echarts应该也需要更新,但这里未更新,所以是一种不合理的搭配,但是能跑起来,懒得改了qwq
+      "https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/echarts/5.3.0-rc.1/echarts.min.js",
       "https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/vue-echarts/5.0.0-beta.0/vue-echarts.min.js",
       "https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/vuex/3.5.1/vuex.min.js",
       "https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/KaTeX/0.12.0/katex.min.js",

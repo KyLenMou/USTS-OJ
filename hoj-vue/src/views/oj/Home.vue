@@ -557,6 +557,9 @@ export default {
 /deep/.el-card__header {
   padding: 0.6rem 1.25rem !important;
 }
+.el-card {
+  border-radius: .5rem !important;
+}
 .card-top {
   margin-top: 20px;
 }

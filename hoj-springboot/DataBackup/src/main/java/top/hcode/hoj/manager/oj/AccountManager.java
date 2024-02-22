@@ -147,9 +147,10 @@ public class AccountManager {
     public UserHomeVO getUserHomeInfo(String uid, String username) throws StatusFailException {
 
         AccountProfile userRolesVo = (AccountProfile) SecurityUtils.getSubject().getPrincipal();
-
+        boolean isMine = false;
         // 如果没有uid和username，默认查询当前登录用户的
         if (StringUtils.isEmpty(uid) && StringUtils.isEmpty(username)) {
+            isMine = true;
             if (userRolesVo != null) {
                 uid = userRolesVo.getUid();
             } else {
@@ -318,6 +319,7 @@ public class AccountManager {
         userHomeInfo.setModelData(getModelData(tagList,tagDifficultyModelMap,tagACRateModelMap));
 
         // 个性化推荐题目:每个标签推荐一个未做过的题目
+
         // tag-id -> List<p-id>
         Map<Long,List<Long>> tidPidTempMap = tagProblem.stream().collect(Collectors.groupingBy(ProblemTag::getTid,Collectors.mapping(ProblemTag::getPid,Collectors.toList())));
         // 去掉通过的题目
@@ -353,7 +355,10 @@ public class AccountManager {
         // recommendProblems去重
         recommendProblems = recommendProblems.stream().distinct().collect(Collectors.toList());
 
-        userHomeInfo.setRecommendProblems(recommendProblems);
+        // 如果不是看自己的就不给推荐的题目
+        if (isMine) {
+            userHomeInfo.setRecommendProblems(recommendProblems);
+        }
 
         // 未通过题目
         List<String> unsolvedProblems = new ArrayList<>();
