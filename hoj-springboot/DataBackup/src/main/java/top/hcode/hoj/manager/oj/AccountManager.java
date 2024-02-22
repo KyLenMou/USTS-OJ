@@ -170,6 +170,9 @@ public class AccountManager {
         // 获得去重的pidList
         List<Long> pidList = acProblemList.stream().map(UserAcproblem::getPid).distinct().collect(Collectors.toList());
 
+        // 将pidList加入到Set中,简化后续查询复杂度
+        Set<Long> pidSet = new HashSet<>(pidList);
+
         // 标签难度统计
         TagDifficultyStatisticVO tagDifficultyStatisticVO = new TagDifficultyStatisticVO();
 
@@ -212,7 +215,8 @@ public class AccountManager {
         QueryWrapper<Tag> tagQueryWrapper = new QueryWrapper<>();
         tagQueryWrapper.eq("oj","ME").isNull("gid").orderByAsc("id");
         List<Tag> allTagList = tagEntityService.list(tagQueryWrapper);
-        List<Tag> tagList = allTagList.stream().filter(t -> (t.getTcid() != null && t.getTcid() == 1)).collect(Collectors.toList());
+        List<Tag> tagList = null;
+        tagList = allTagList.stream().filter(t -> (t.getTcid() != null && t.getTcid() == 1)).collect(Collectors.toList());
         List<Long> tagIdList = tagList.stream().map(Tag::getId).collect(Collectors.toList());
         // tag-id -> tag-name
         Map<Long,String> tidNameMap = tagList.stream().collect(Collectors.toMap(Tag::getId,Tag::getName));
@@ -252,7 +256,7 @@ public class AccountManager {
         }
         // 得到所有题目
         QueryWrapper<Problem> allProblemQueryWrapper = new QueryWrapper<>();
-        allProblemQueryWrapper.select("id","difficulty");
+        allProblemQueryWrapper.select("id","difficulty","title","problem_id").orderByAsc("difficulty");
         List<Problem> allProblemList = problemEntityService.list(allProblemQueryWrapper);
         // 把题目加入到tagDifficultyModelMap(统计总题数)
         for (Problem p : allProblemList) {
@@ -313,6 +317,45 @@ public class AccountManager {
         // 得到模型数据
         userHomeInfo.setModelData(getModelData(tagList,tagDifficultyModelMap,tagACRateModelMap));
 
+        // 个性化推荐题目:每个标签推荐一个未做过的题目
+        // tag-id -> List<p-id>
+        Map<Long,List<Long>> tidPidTempMap = tagProblem.stream().collect(Collectors.groupingBy(ProblemTag::getTid,Collectors.mapping(ProblemTag::getPid,Collectors.toList())));
+        // 去掉通过的题目
+        Map<Long,List<Long>> tidPidMap = new HashMap<>();
+        for (Long tid : tidPidTempMap.keySet()) {
+            List<Long> pids = tidPidTempMap.get(tid);
+            List<Long> temp = new ArrayList<>();
+            for (Long pid : pids) {
+                if (!pidSet.contains(pid)) {
+                    temp.add(pid);
+                }
+            }
+            tidPidMap.put(tid,temp);
+        }
+        List<Problem> problems = new ArrayList<>();
+        // 把上面的allProblemList转换成map<pid,problem>
+        Map<Long,Problem> pidProblemListMap = allProblemList.stream().collect(Collectors.toMap(Problem::getId, p -> p));
+        for (Long tid : tidPidMap.keySet()) {
+            for (Long pid : tidPidMap.get(tid)) {
+                if (pidProblemListMap.get(pid) == null) continue;
+                problems.add(pidProblemListMap.get(pid));
+                break;
+            }
+        }
+        // 把problems封装成List<RecommendProblemVO>
+        List<RecommendProblemVO> recommendProblems = problems.stream().map(p -> {
+            RecommendProblemVO recommendProblemVO = new RecommendProblemVO();
+            recommendProblemVO.setDifficulty(p.getDifficulty());
+            recommendProblemVO.setTitle(p.getTitle());
+            recommendProblemVO.setPid(p.getProblemId());
+            return recommendProblemVO;
+        }).collect(Collectors.toList());
+        // recommendProblems去重
+        recommendProblems = recommendProblems.stream().distinct().collect(Collectors.toList());
+
+        userHomeInfo.setRecommendProblems(recommendProblems);
+
+        // 未通过题目
         List<String> unsolvedProblems = new ArrayList<>();
         for (String displayPid : unsolvedMap.keySet()){
             if (unsolvedMap.get(displayPid) == 0) continue;
