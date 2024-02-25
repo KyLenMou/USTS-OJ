@@ -8,9 +8,13 @@
               <div class="flex-display">
                 <!--头像-->
                 <span>
-<!--                  <el-avatar shape="square" :size="120" :src="flex-display.avatar"></el-avatar>-->
-                  <el-avatar shape="square" :size="120"
-                             src="https://assets.leetcode.cn/aliyun-lc-upload/users/kylen-n/avatar_1636807022.png?x-oss-process=image%2Fformat%2Cwebp"></el-avatar>
+                  <avatar
+                    :username="profile.username"
+                    :inline="true"
+                    :size="130"
+                    color="#FFF"
+                    :src="profile.avatar"
+                ></avatar>
                 </span>
                 <!--基本信息-->
                 <span class="profile-emphasis">
@@ -105,8 +109,8 @@
 
     <el-row :gutter="15" class="row-margin-top">
       <el-col :span="5">
-        <el-card>
-          <el-row>
+        <el-card :body-style="{padding:0}">
+          <el-row style="margin: 20px 20px 0 20px">
             <el-col :span="24">
               <!--四个方块-->
               <el-card shadow="always" class="submission">
@@ -159,36 +163,9 @@
                 content="各个标签对应的已通过题目在难度和提交通过以及总题数下的占比">
               <h1 style="margin: 0">能力达成度</h1>
             </el-tooltip>
-            <div style="width: 100%">
+            <div style="width: 100%; height: 800px; overflow-y: auto">
               <ECharts :options="modelOption" style="width: 100%" :style="modelHeight" :autoresize="true"></ECharts>
             </div>
-          </el-row>
-          <el-divider></el-divider>
-          <!--个性化推荐-->
-          <el-row style="text-align: center;" v-if="profile.recommendProblems">
-            <el-tooltip placement="top" effect="light" content="点击难度按钮到达题目页面">
-              <h1 style="margin: 0;color: #409EFF">个性化推荐</h1>
-            </el-tooltip>
-            <el-table
-                :data="profile.recommendProblems"
-                :header-cell-style="{'text-align': 'center'}"
-                :cell-style="{'text-align':'center', 'padding': '5px 0 !important'}"
-                style="margin-top: 10px"
-            >
-              <el-table-column prop="title" label="题目"></el-table-column>
-              <el-table-column label="难度">
-                <template slot-scope="scope">
-                  <el-button
-                      size="mini"
-                      :style="utils.getLevelColor(scope.row.difficulty)"
-                      style="padding: 5px 10px"
-                      @click="goProblem(scope.row.pid)"
-                  >
-                    {{ utils.getLevelName(scope.row.difficulty) }}
-                  </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
           </el-row>
         </el-card>
       </el-col>
@@ -233,43 +210,67 @@
                 <span class="panel-title home-title">
                   <i class="el-icon-data-analysis"></i>
                   比赛情况
-                  <el-select v-model="contestValue" placeholder="请选择比赛" style="float: right" size="mini">
+                  <el-select
+                      v-if="contestData && contestData.length"
+                      v-model="contestSelect"
+                      placeholder="请选择比赛" style="float: right" size="mini"
+                      @change="changeContest"
+                  >
                     <el-option
-                        v-for="c in contestList"
+                        v-for="c in contestData"
                         :key="c.contestId"
                         :label="c.contestName"
-                        :value="c.contestId">
+                        :value="c.order">
                     </el-option>
-                </el-select>
+                  </el-select>
                 </span>
               </div>
-              <el-row>
+              <el-row v-if="contestData && contestData.length">
                 <!-- OI -->
-                <template v-if="contestData.contestType">
-                  <el-table :data="contestData.OIStatistic.statistics" border style="border-top-width: 0; width: 100%">
+                <template v-if="contestData[contestSelect].contestType">
+                  <el-table
+                      :data="contestData[contestSelect].oistatistic.statistics"
+                      border
+                      style="border-top-width: 0; width: 100%">
                     <el-table-column
-                        v-for="(pid, index) in contestData.OIStatistic.pids"
-                        :label="pid"
+                        v-for="(pid, index) in contestData[contestSelect].oistatistic.pids"
                         :key="index"
                         align="center"
                     >
-                      <template v-if="contestData.OIStatistic.statistics[0][index].status > 0">
+                      <template slot="header" slot-scope="scope">
+                        <el-tooltip placement="top" effect="light" :enterable="false">
+                          <div slot="content">
+                            <h2 style="margin: 0;">
+                              {{ contestData[contestSelect].oistatistic.statistics[0][index].title }}
+                              <el-button
+                                  size="mini"
+                                  :style="utils.getLevelColor(contestData[contestSelect].oistatistic.statistics[0][index].difficulty)"
+                                  style="padding: 5px 10px"
+                              >
+                                {{ utils.getLevelName(contestData[contestSelect].oistatistic.statistics[0][index].difficulty) }}
+                              </el-button>
+                            </h2>
+                          </div>
+                          <div>{{ pid }}</div>
+                        </el-tooltip>
+                      </template>
+                      <template v-if="contestData[contestSelect].oistatistic.statistics[0][index].status > 0">
                         <div style="backgroundColor: #19BE6B; color: #FFFFFF;">
-                          {{ contestData.OIStatistic.statistics[0][index].score }}
+                          {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
                           <br>
-                          {{ contestData.OIStatistic.statistics[0][index].time }}ms
+                          {{ contestData[contestSelect].oistatistic.statistics[0][index].time }}ms
                         </div>
                       </template>
-                      <template v-else-if="contestData.OIStatistic.statistics[0][index].status < 0">
-                        <div style="backgroundColor: #E87272; color: #FFFFFF;">
-                          {{ contestData.OIStatistic.statistics[0][index].score }}
+                      <template v-else-if="contestData[contestSelect].oistatistic.statistics[0][index].status < 0">
+                        <div style="backgroundColor: #E87272; color: #FFFFFF;"
+                             v-if="contestData[contestSelect].oistatistic.statistics[0][index].score === 0">
+                          {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
                           <br>
                           --ms
                         </div>
-                      </template>
-                      <template v-else>
-                        <div style="backgroundColor: #2D8CF0; color: #FFFFFF;">
-                          {{ contestData.OIStatistic.statistics[0][index].score }}
+                        <div style="backgroundColor: #2D8CF0; color: #FFFFFF;"
+                             v-else>
+                          {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
                           <br>
                           --ms
                         </div>
@@ -279,37 +280,51 @@
                 </template>
                 <!-- ACM -->
                 <template v-else>
-                  <el-table :data="contestData.ACMStatistic.statistics" border style="border-top-width: 0; width: 100%">
+                  <el-table :data="contestData[contestSelect].acmstatistic.statistics" border
+                            style="border-top-width: 0; width: 100%">
                     <el-table-column
-                        v-for="(pid, index) in contestData.ACMStatistic.pids"
-                        :label="pid"
+                        v-for="(pid, index) in contestData[contestSelect].acmstatistic.pids"
                         :key="index"
                         align="center"
                     >
-                      <template v-if="contestData.ACMStatistic.statistics[0][index].total > 0">
+                      <template slot="header" slot-scope="scope">
+                        <el-tooltip placement="top" effect="light">
+                          <div slot="content">
+                            <h2 style="margin: 0;">
+                              {{ contestData[contestSelect].acmstatistic.statistics[0][index].title }}
+                              <el-button
+                                  size="mini"
+                                  :style="utils.getLevelColor(contestData[contestSelect].acmstatistic.statistics[0][index].difficulty)"
+                                  style="padding: 5px 10px"
+                              >
+                                {{ utils.getLevelName(contestData[contestSelect].acmstatistic.statistics[0][index].difficulty) }}
+                              </el-button>
+                            </h2>
+                          </div>
+                          <div>{{ pid }}</div>
+                        </el-tooltip>
+                      </template>
+                      <template v-if="contestData[contestSelect].acmstatistic.statistics[0][index].total > 0">
                         <div style="backgroundColor: #19BE6B; color: #FFFFFF;">
-                          +{{ contestData.ACMStatistic.statistics[0][index].total }}
+                          +{{ contestData[contestSelect].acmstatistic.statistics[0][index].total }}
                           <br>
-                          {{ contestData.ACMStatistic.statistics[0][index].time }}ms
+                          ( {{ contestData[contestSelect].acmstatistic.statistics[0][index].time }} min )
                         </div>
                       </template>
-                      <template v-else-if="contestData.ACMStatistic.statistics[0][index].total < 0">
+                      <template v-else-if="contestData[contestSelect].acmstatistic.statistics[0][index].total < 0">
                         <div style="backgroundColor: #E87272; color: #FFFFFF;">
-                          {{ contestData.ACMStatistic.statistics[0][index].total }}
+                          {{ contestData[contestSelect].acmstatistic.statistics[0][index].total }}
                           <br>
-                          {{ contestData.ACMStatistic.statistics[0][index].time }}ms
+                          --
                         </div>
                       </template>
                     </el-table-column>
                   </el-table>
                 </template>
               </el-row>
+              <el-empty v-else></el-empty>
               <el-row>
                 <ECharts :options="contestOption" :autoresize="true" style="height: 280px;width: 100%"></ECharts>
-              </el-row>
-              <el-row :gutter="10">
-                <el-col :span="24">
-                </el-col>
               </el-row>
             </el-card>
           </el-col>
@@ -394,6 +409,28 @@
           <el-col :span="24">
             <el-card :body-style="{padding: 0}">
               <el-collapse v-model="problemListName" accordion>
+                <!--个性化题目推荐-->
+                <el-collapse-item v-if="profile.recommendProblems" name="recommend">
+                  <div slot="title" class="collapse-title">
+                    <i class="el-icon-stopwatch"></i>
+                    个性化题目推荐
+                  </div>
+                  <template v-if="profile.recommendProblems && profile.recommendProblems.length">
+                    <el-button
+                        v-for="problem of profile.recommendProblems"
+                        :key="problem.pid"
+                        :style="utils.getLevelColor(problem.difficulty)"
+                        class="problem-btn"
+                        size="small"
+                        @click="goProblem(problem.pid)"
+                    >
+                      {{ problem.title }}
+                    </el-button>
+                  </template>
+                  <template v-else>
+                    <el-empty></el-empty>
+                  </template>
+                </el-collapse-item>
                 <!--未通过题目-->
                 <el-collapse-item name="unsolved">
                   <div slot="title" class="collapse-title">
@@ -464,11 +501,83 @@ export default {
   },
   methods: {
     ...mapActions(['changeDomTitle']),
+    changeContest() {
+      this.changeContestOption();
+    },
     initModelOption() {
       this.modelOption.yAxis.data = this.profile.modelData.yaxisData;
       this.modelOption.series[0].data = this.profile.modelData.data.map((item) => {
         return [item.x, item.y, item.rate];
       });
+    },
+    changeContestOption() {
+      // 排名
+      this.contestOption.title[2].text = `击败${(this.contestData[this.contestSelect].beatPercent.toFixed(3) * 100).toFixed(1)}%参赛者`;
+      this.contestOption.series[2].data[0].value = this.contestData[this.contestSelect].beatPercent.toFixed(3) * 100;
+      this.contestOption.series[2].data[0].name= `排名${this.contestData[this.contestSelect].rank}`;
+      // 提交次数 / 做题数量
+      const totalSubmission = Object.values(this.contestData[this.contestSelect].submitStatistic).reduce((a, b) => a + b);
+      let pieData = [];
+      if (this.contestData[this.contestSelect].contestType) {
+        this.contestOption.title[1].text = `做题数量: ${totalSubmission}`;
+        for (let key in this.contestData[this.contestSelect].submitStatistic) {
+          pieData.push({
+            value: this.contestData[this.contestSelect].submitStatistic[key],
+            name: key === '1' ? 'Accepted' : (key === '0' ? 'Partial Accepted' : 'Unaccepted'),
+            itemStyle: {
+              color: key === '1' ? JUDGE_STATUS['0'].rgb : (key === '0' ? JUDGE_STATUS['8'].rgb : JUDGE_STATUS['-1'].rgb)
+            }
+          });
+        }
+      } else {
+        this.contestOption.title[1].text = `提交次数: ${totalSubmission}`;
+        for (let key in this.contestData[this.contestSelect].submitStatistic) {
+          pieData.push({
+            value: this.contestData[this.contestSelect].submitStatistic[key],
+            name: key === '1' ? 'Accepted' : 'Unaccepted',
+            itemStyle: {
+              color: key === '0' ? JUDGE_STATUS['-1'].rgb : JUDGE_STATUS['0'].rgb
+            }
+          });
+        }
+      }
+      this.contestOption.series[1].data = pieData;
+      // 比赛表现
+      let acRate = 0;
+      if (this.contestData[this.contestSelect].submitStatistic['1']) acRate = this.contestData[this.contestSelect].submitStatistic['1'] / totalSubmission;
+      let total = 0;
+      if (this.contestData[this.contestSelect].contestType) {
+        total = this.contestData[this.contestSelect].oistatistic.statistics[0].length;
+      } else {
+        total = this.contestData[this.contestSelect].acmstatistic.statistics[0].length;
+      }
+      this.contestOption.radar.indicator[2].max = total;
+
+      let maxTime = 0;
+      if (this.contestData[this.contestSelect].contestType) {
+        maxTime = this.contestData[this.contestSelect].oistatistic.statistics[0].reduce((a, b) => a.time > b.time ? a : b).time;
+      } else {
+        maxTime = this.contestData[this.contestSelect].acmstatistic.statistics[0].reduce((a, b) => a.time > b.time ? a : b).time;
+      }
+      this.contestOption.radar.indicator[1].max = maxTime;
+
+      let acTotal = 0;
+      let acTime = 0;
+      if (this.contestData[this.contestSelect].contestType) {
+        acTotal = this.contestData[this.contestSelect].oistatistic.statistics[0].filter((item) => item.status === 1).length;
+        acTime = this.contestData[this.contestSelect].oistatistic.statistics[0].filter((item) => item.status === 1).reduce((a, b) => a + b.time, 0);
+      } else {
+        acTotal = this.contestData[this.contestSelect].acmstatistic.statistics[0].filter((item) => item.total > 0).length;
+        acTime = this.contestData[this.contestSelect].acmstatistic.statistics[0].filter((item) => item.total > 0).reduce((a, b) => a + b.time, 0);
+      }
+      acTime = acTime / acTotal;
+      if (this.contestData[this.contestSelect].contestType) this.contestOption.radar.indicator[1].name = '平均运行时间\n(总运行时间/过题数)';
+      else this.contestOption.radar.indicator[1].name = '平均过题时间\n(罚时/过题数)';
+      this.contestOption.series[0].data[0].value = [
+        acRate.toFixed(2),
+        acTime.toFixed(1),
+        acTotal
+      ];
     },
     getUserCalendarHeatmap() {
       const uid = this.$route.query.uid;
@@ -530,8 +639,16 @@ export default {
       api.getUserInfo(uid, username).then((res) => {
         this.changeDomTitle({title: res.data.username});
         this.profile = res.data.data;
+        this.contestData = res.data.data.contestData;
+        if (this.contestData && this.contestData.length) {
+          this.contestSelect = this.contestData[0].order;
+          this.changeContestOption();
+        }
         this.initModelOption();
         this.handleTagDifficultyOption();
+        if (this.profile.recommendProblems && this.profile.recommendProblems.length) {
+          this.problemListName = 'recommend';
+        }
         this.$nextTick((_) => {
           addCodeBtn();
         });
@@ -539,6 +656,7 @@ export default {
       }, (_) => {
         this.profile.loading = false;
       });
+      this.getRecentSubmission();
     },
     goProblem(problemID) {
       this.$router.push({
@@ -591,7 +709,7 @@ export default {
         legend: [
           {
             orient: 'vertical',
-            right: 80,
+            left: 0,
             data: [],
             textStyle: {
               textBorderColor: "#FFFFFF",
@@ -614,10 +732,8 @@ export default {
         ],
         series: [
           {
-            right: '20%',
-            left: 0,
-            top: 0,
-            bottom: '5%',
+            right: '15%',
+            top: '5%',
             type: 'pie',
             selectedMode: 'single',
             radius: [0, '35%'],
@@ -632,10 +748,8 @@ export default {
             },
           },
           {
-            right: '20%',
-            left: 0,
-            top: 0,
-            bottom: '5%',
+            right: '15%',
+            top: '5%',
             type: 'pie',
             radius: ['53%', '77%'],
             selectedMode: 'single',
@@ -652,7 +766,7 @@ export default {
             itemStyle: {
               borderColor: "#FFFFFF",
               borderRadius: 5,
-              borderWidth: 2
+              borderWidth: 1
             },
           }
         ]
@@ -664,8 +778,8 @@ export default {
         grid: {
           containLabel: true,
           height: 'auto',
-          left: 0,
-          right: 0,
+          left: 10,
+          right: 20,
           top: 10,
           bottom: 0
         },
@@ -752,13 +866,15 @@ export default {
             top: 60
           },
           {
-            text: "提交次数: 11",
-            right: 50,
+            text: "提交次数: --",
+            left: '80%',
+            textAlign: "center",
             top: 180,
           },
           {
-            text: "击败40%参赛者",
-            left: 35,
+            text: "击败--%参赛者",
+            left: '20%',
+            textAlign: "center",
             top: 180,
           }
         ],
@@ -772,8 +888,8 @@ export default {
         radar: {
           indicator: [
             {name: '通过率\n(过题数/过题总提交数)', max: 1},
-            {name: '平均过题时间\n(罚时/过题数)', max: 99},
-            {name: '过题数', max: 7},
+            {name: '平均--时间\n(罚时/过题数)', max: 100},
+            {name: '过题数', max: 100},
           ],
           radius: ['0', '80'],
           center: ['50%', 200],
@@ -787,12 +903,15 @@ export default {
             },
             areaStyle: {},
             label: {
-              show: true
+              show: false
             },
             data: [
               {
                 value: [0.6, 51, 6],
                 name: '比赛表现',
+                itemStyle: { //该数值区域样式设置
+                  color: 'rgba(96,220,18,0.7)',
+                },
               }
             ],
           },
@@ -822,13 +941,7 @@ export default {
                 formatter: '{b}\n{c} 次'
               }
             },
-            data: [
-              {value: 4, name: 'Accepted', itemStyle: {color: '#19BE6B'}},
-              {value: 2, name: 'Partial Accepted', itemStyle: {color: '#2D8CF0'}},
-              {value: 1, name: 'Compile Error', itemStyle: {color: '#FF9900'}},
-              {value: 6, name: 'Wrong Answer', itemStyle: {color: '#ED3F14'}},
-              {value: 3, name: 'Time Limit Exceeded', itemStyle: {color: '#ED3F14'}}
-            ]
+            data: []
           },
           {
             type: "gauge",
@@ -839,8 +952,8 @@ export default {
             },
             data: [
               {
-                value: 40,
-                name: '排名1',
+                value: 50,
+                name: '排名--',
                 title: {
                   offsetCenter: ['0%', '40%']
                 },
@@ -851,7 +964,33 @@ export default {
             },
             progress: {
               show: true,
-              roundCap: true // 圆角
+              roundCap: true, // 圆角
+              itemStyle: {
+                color: {
+                  type: 'linear',
+                  x: 1,
+                  y: 0,
+                  x2: 0,
+                  y2: 1,
+                  colorStops: [
+                    {
+                      offset: 0,
+                      color: '#4EC5FF' // 0% 处的颜色
+                    },
+                    {
+                      offset: 1,
+                      color: '#2D8CF0' // 100% 处的颜色
+                    }
+                  ],
+                  global: false // 缺省为 false
+                }
+              }
+            },
+            pointer: {
+              show: true, //是否显示指针
+              itemStyle: {
+                color: '#A80D11'
+              }
             },
             axisLine: {
               roundCap: true // 圆角
@@ -874,46 +1013,12 @@ export default {
           }
         ]
       },
-      contestValue: '1',
-      contestData: {
-        contestType: 1,
-        OIStatistic: {
-          pids: ['A', 'B', 'C', 'D', 'E', 'F'],
-          statistics: [
-            [{status: 1, score: 50, time: 19},
-              {status: 1, score: 100, time: 34},
-              {status: 0, score: 60, time: 0},
-              {status: -1, score: -1, time: 0},
-              {status: -1, score: -3, time: 0},
-              {status: 1, score: 300, time: 44}]
-          ]
-        },
-        ACMStatistic: {
-          pids: ['A', 'B', 'C', 'D'],
-          statistics: [
-            [{total: 3, time: 15, first: 1},
-              {total: -6, time: 23, first: 0},
-              {total: 0, time: 54, first: 0},
-              {total: 1, time: 76, first: 0}]
-          ]
-        },
-        radarData: {},
-      },
-      contestList: [
-        {
-          contestName: '比赛1',
-          contestId: '1'
-        },
-        {
-          contestName: '比赛2',
-          contestId: '2'
-        },
-      ],
+      contestSelect: null,
+      contestData: [],
       recentSubmission: [],
       profile: {
         username: '',
         nickname: '',
-        gender: '',
         avatar: '',
         school: '',
         signature: '',
@@ -944,7 +1049,7 @@ export default {
       PROBLEM_LEVEL: {},
     };
   },
-  created(){
+  created() {
     this.getUserCalendarHeatmap();
   },
   mounted() {
@@ -977,7 +1082,6 @@ export default {
       more: this.$i18n.t('m.More')
     }
     this.init();
-    this.getRecentSubmission();
     this.JUDGE_STATUS = Object.assign({}, JUDGE_STATUS);
     this.JUDGE_STATUS_LIST = Object.assign({}, JUDGE_STATUS);
     this.JUDGE_STATUS_RESERVE = Object.assign({}, JUDGE_STATUS_RESERVE);
@@ -990,8 +1094,8 @@ export default {
         this.init();
       }
     },
-    "$store.state.language"(newVal,oldVal){
-      console.log(newVal,oldVal)
+    "$store.state.language"(newVal, oldVal) {
+      console.log(newVal, oldVal)
       this.calendarHeatLocale = {
         months: [
           this.$i18n.t('m.Jan'),
@@ -1025,6 +1129,11 @@ export default {
 };
 </script>
 <style scoped>
+.el-divider--horizontal {
+  margin-left: 10%;
+  margin-right: 10%;
+  width: 80%;
+}
 .tagScroll {
   overflow: auto;
   max-height: 350px

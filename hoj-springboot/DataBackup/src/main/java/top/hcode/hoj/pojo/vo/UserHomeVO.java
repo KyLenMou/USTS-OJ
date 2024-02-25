@@ -83,4 +83,7 @@ public class UserHomeVO {
 
     @ApiModelProperty(value = "个性化推荐题目")
     private List<RecommendProblemVO> recommendProblems;
+
+    @ApiModelProperty(value = "个性化推荐题目")
+    private List<UserContestInfoVO> contestData;
 }

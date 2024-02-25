@@ -8,13 +8,17 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import top.hcode.hoj.common.exception.StatusFailException;
+import top.hcode.hoj.common.exception.StatusForbiddenException;
 import top.hcode.hoj.common.exception.StatusSystemErrorException;
+import top.hcode.hoj.dao.contest.ContestEntityService;
+import top.hcode.hoj.dao.contest.ContestRecordEntityService;
 import top.hcode.hoj.dao.problem.ProblemEntityService;
 import top.hcode.hoj.dao.problem.TagClassificationEntityService;
 import top.hcode.hoj.dao.problem.TagEntityService;
@@ -25,6 +29,10 @@ import top.hcode.hoj.mapper.ProblemTagMapper;
 import top.hcode.hoj.pojo.dto.ChangeEmailDTO;
 import top.hcode.hoj.pojo.dto.ChangePasswordDTO;
 import top.hcode.hoj.pojo.dto.CheckUsernameOrEmailDTO;
+import top.hcode.hoj.pojo.dto.ContestRankDTO;
+import top.hcode.hoj.pojo.entity.contest.Contest;
+import top.hcode.hoj.pojo.entity.contest.ContestProblem;
+import top.hcode.hoj.pojo.entity.contest.ContestRecord;
 import top.hcode.hoj.pojo.entity.judge.Judge;
 import top.hcode.hoj.pojo.entity.problem.Problem;
 import top.hcode.hoj.pojo.entity.problem.ProblemTag;
@@ -59,6 +67,12 @@ public class AccountManager {
     private TagClassificationEntityService tagClassificationEntityService;
     @Autowired
     private JudgeMapper judgeMapper;
+    @Autowired
+    private ContestRecordEntityService contestRecordEntityService;
+    @Autowired
+    private ContestEntityService contestEntityService;
+    @Autowired
+    private ContestManager contestManager;
 
     @Autowired
     private RedisUtils redisUtils;
@@ -139,6 +153,7 @@ public class AccountManager {
 
     /**
      * @param uid
+     * @param username
      * @MethodName getUserHomeInfo
      * @Description 前端userHome用户个人主页的数据请求，主要是返回解决题目数，AC的题目列表，提交总数，AC总数，Rating分，
      *              新增: 尚未涉足的标签,未通过的题目,标签难度统计,能力达成度模型数据
@@ -168,6 +183,18 @@ public class AccountManager {
                 .orderByAsc("submit_id");
 
         List<UserAcproblem> acProblemList = userAcproblemEntityService.list(queryWrapper);
+        // 还要加上contest的题目
+        QueryWrapper<ContestRecord> contestRecordQueryWrapper = new QueryWrapper<>();
+        contestRecordQueryWrapper.eq("uid", userHomeInfo.getUid())
+                .select("distinct pid", "submit_id")
+                .orderByAsc("submit_id");
+        List<ContestRecord> contestRecordList = contestRecordEntityService.list(contestRecordQueryWrapper);
+        for (ContestRecord contestRecord : contestRecordList) {
+            UserAcproblem userAcproblem = new UserAcproblem();
+            userAcproblem.setPid(contestRecord.getPid());
+            userAcproblem.setSubmitId(contestRecord.getSubmitId());
+            acProblemList.add(userAcproblem);
+        }
         // 获得去重的pidList
         List<Long> pidList = acProblemList.stream().map(UserAcproblem::getPid).distinct().collect(Collectors.toList());
 
@@ -212,19 +239,32 @@ public class AccountManager {
         judgeQueryWrapper.eq("uid",userHomeInfo.getUid()).select("pid","display_pid","status");
         List<Judge> judgeList = judgeMapper.selectList(judgeQueryWrapper);
 
-        // 所有tag(只包括标签顺序为1的)
+        // 标签分类
+        QueryWrapper<TagClassification> tagClassificationQueryWrapper = new QueryWrapper<>();
+        tagClassificationQueryWrapper.eq("oj","ME").orderByAsc("`rank`");
+        List<TagClassification> classificationList = tagClassificationEntityService.list(tagClassificationQueryWrapper);
+
+        // 从classificationList的到rank为0的classification
+        TagClassification tagClassification = classificationList.stream().filter(c -> c.getRank() == 0).findFirst().orElse(null);
+        Long mainClassificationId = tagClassification == null ? null : tagClassification.getId();
+
+        // 所有tag(只包括标签rank为0的,不是id,是rank)
         QueryWrapper<Tag> tagQueryWrapper = new QueryWrapper<>();
         tagQueryWrapper.eq("oj","ME").isNull("gid").orderByAsc("id");
         List<Tag> allTagList = tagEntityService.list(tagQueryWrapper);
-        List<Tag> tagList = null;
-        tagList = allTagList.stream().filter(t -> (t.getTcid() != null && t.getTcid() == 1)).collect(Collectors.toList());
+        List<Tag> tagList = new ArrayList<>();
+        if (mainClassificationId != null) tagList = allTagList.stream().filter(t -> (t.getTcid() != null && t.getTcid() == mainClassificationId)).collect(Collectors.toList());
         List<Long> tagIdList = tagList.stream().map(Tag::getId).collect(Collectors.toList());
         // tag-id -> tag-name
         Map<Long,String> tidNameMap = tagList.stream().collect(Collectors.toMap(Tag::getId,Tag::getName));
         // 所有p -> tag
-        QueryWrapper<ProblemTag> problemTagsQueryWrapper = new QueryWrapper<>();
-        problemTagsQueryWrapper.in("tid",tagIdList).orderByAsc("tid");
-        List<ProblemTag> tagProblem = problemTagMapper.selectList(problemTagsQueryWrapper);
+        List<ProblemTag> tagProblem = new LinkedList<>();
+        QueryWrapper<ProblemTag> problemTagsQueryWrapper = null;
+        if (!CollectionUtils.isEmpty(tagIdList)) {
+            problemTagsQueryWrapper = new QueryWrapper<>();
+            problemTagsQueryWrapper.in("tid",tagIdList).orderByAsc("tid");
+        }
+        tagProblem = problemTagMapper.selectList(problemTagsQueryWrapper);
         // p-id -> List<tag-id>
         Map<Long,List<Long>> pidTidMap = tagProblem.stream().collect(Collectors.groupingBy(ProblemTag::getPid,Collectors.mapping(ProblemTag::getTid,Collectors.toList())));
         // p-id -> List<tag-name>
@@ -360,6 +400,184 @@ public class AccountManager {
             userHomeInfo.setRecommendProblems(recommendProblems);
         }
 
+        QueryWrapper<Contest> contestQueryWrapper = new QueryWrapper<>();
+        contestQueryWrapper.orderByDesc("id");
+        List<Contest> allContestList = contestEntityService.list(contestQueryWrapper);
+
+        List<UserContestInfoVO> contestData = new ArrayList<>();
+        final int[] index = {0};
+        allContestList.forEach(c -> {
+            if (c.getStatus() != 1 || !c.getVisible()) return;
+            ContestRankDTO contestRankDTO = new ContestRankDTO();
+            contestRankDTO.setCid(c.getId());
+            contestRankDTO.setLimit(1000000000);
+            IPage contestRank = null;
+            try {
+                contestRank = contestManager.getContestRank(contestRankDTO);
+            } catch (StatusFailException | StatusForbiddenException e) {
+                return;
+            }
+            List records = contestRank.getRecords();
+            if (records == null || records.isEmpty()) return;
+            UserContestInfoVO userContestInfoVO = new UserContestInfoVO();
+            if (records.get(0) instanceof OIContestRankVO) {
+                List<OIContestRankVO> oiContestRankVOList = records;
+                for (OIContestRankVO oiContestRankVO : oiContestRankVOList) {
+                    // 查询当前用户是否在排名中
+                    if (oiContestRankVO.getUid().equals(userHomeInfo.getUid())) {
+                        // 查比赛题目
+                        List<ContestProblemVO> contestProblem = null;
+                        try {
+                            contestProblem = contestManager.getContestProblem(c.getId(), true);
+                        } catch (StatusFailException | StatusForbiddenException e) {
+                            throw new RuntimeException(e);
+                        }
+                        // pid
+                        List<String> pids = contestProblem.stream().map(ContestProblemVO::getDisplayId).collect(Collectors.toList());
+                        // 对应的oiStatistics
+                        List<OIStatistic> oiStatistics = contestProblem.stream().map(cp -> {
+                            OIStatistic oiStatistic = new OIStatistic();
+                            oiStatistic.setTitle(cp.getDisplayTitle());
+                            oiStatistic.setDifficulty(pidDifficultyMap.get(cp.getPid()));
+                            return oiStatistic;
+                        }).collect(Collectors.toList());
+
+                        // 根据比赛信息构建数据
+                        userContestInfoVO.setOrder(index[0]++);
+                        userContestInfoVO.setContestId(c.getId());
+                        userContestInfoVO.setContestName(c.getTitle());
+                        userContestInfoVO.setContestType(1);
+                        int rank = oiContestRankVO.getRank() > 0 ? oiContestRankVO.getRank() : 0;
+                        userContestInfoVO.setRank(rank);
+                        userContestInfoVO.setBeatPercent(rank > 0 ? (double) (oiContestRankVOList.size() - rank + 1) / oiContestRankVOList.size() : 0.0);
+
+                        // 构建oiStatistics其他部分
+                        HashMap<String, Integer> submissionInfo = oiContestRankVO.getSubmissionInfo();
+                        HashMap<String, Integer> timeInfo = oiContestRankVO.getTimeInfo();
+                        for (int i = 0; i < pids.size(); i++) {
+                            String pid = pids.get(i);
+                            Integer score = submissionInfo.get(pid);
+                            if (score != null) {
+                                oiStatistics.get(i).setScore(submissionInfo.get(pid));
+                                oiStatistics.get(i).setStatus(-1);
+                            } else {
+                                oiStatistics.get(i).setScore(0);
+                                oiStatistics.get(i).setStatus(0);
+                            }
+                            if (timeInfo != null && timeInfo.get(pid) != null) {
+                                oiStatistics.get(i).setStatus(1);
+                                oiStatistics.get(i).setTime(timeInfo.get(pid));
+                            } else {
+                                oiStatistics.get(i).setTime(0);
+                            }
+                        }
+                        Map<String,Integer> submitStatistic = new HashMap<>();
+                        oiStatistics.forEach(oiStatistic -> {
+                            if (oiStatistic.getStatus() == 1) {
+                                submitStatistic.put("1",submitStatistic.getOrDefault("1",0) + 1);
+                            } else if (oiStatistic.getStatus() == -1) {
+                                if (oiStatistic.getScore() == 0) {
+                                    submitStatistic.put("-1",submitStatistic.getOrDefault("-1",0) + 1);
+                                } else {
+                                    submitStatistic.put("0",submitStatistic.getOrDefault("0",0) + 1);
+                                }
+                            }
+                        });
+
+                        // 封装
+                        OIStatisticVO oiStatisticVO = new OIStatisticVO();
+                        oiStatisticVO.setPids(pids);
+                        List<List<OIStatistic>> statistics = new ArrayList<>();
+                        statistics.add(oiStatistics);
+                        oiStatisticVO.setStatistics(statistics);
+
+                        userContestInfoVO.setOIStatistic(oiStatisticVO);
+                        userContestInfoVO.setSubmitStatistic(submitStatistic);
+                        contestData.add(userContestInfoVO);
+                        break;
+                    }
+                }
+            }
+            else if (records.get(0) instanceof ACMContestRankVO) {
+                List<ACMContestRankVO> acmContestRankVOList = records;
+                for (ACMContestRankVO acmContestRankVO : acmContestRankVOList) {
+                    // 查询当前用户是否在排名中
+                    if (acmContestRankVO.getUid().equals(userHomeInfo.getUid())) {
+                        // 查比赛题目
+                        List<ContestProblemVO> contestProblem = null;
+                        try {
+                            contestProblem = contestManager.getContestProblem(c.getId(), true);
+                        } catch (StatusFailException | StatusForbiddenException e) {
+                            throw new RuntimeException(e);
+                        }
+                        // pid
+                        List<String> pids = contestProblem.stream().map(ContestProblemVO::getDisplayId).collect(Collectors.toList());
+                        // 对应的acmStatistics
+                        List<ACMStatistic> acmStatistics = contestProblem.stream().map(cp -> {
+                            ACMStatistic acmStatistic = new ACMStatistic();
+                            acmStatistic.setTitle(cp.getDisplayTitle());
+                            acmStatistic.setDifficulty(pidDifficultyMap.get(cp.getPid()));
+                            return acmStatistic;
+                        }).collect(Collectors.toList());
+
+                        // 根据比赛信息构建数据
+                        userContestInfoVO.setOrder(index[0]++);
+                        userContestInfoVO.setContestId(c.getId());
+                        userContestInfoVO.setContestName(c.getTitle());
+                        userContestInfoVO.setContestType(0);
+                        int rank = acmContestRankVO.getRank() > 0 ? acmContestRankVO.getRank() : 0;
+                        userContestInfoVO.setRank(rank);
+                        userContestInfoVO.setBeatPercent(rank > 0 ? (double) (acmContestRankVOList.size() - rank + 1) / acmContestRankVOList.size() : 0.0);
+
+                        // 构建acmStatistics其他部分
+                        HashMap<String, HashMap<String, Object>> submissionInfo = acmContestRankVO.getSubmissionInfo();
+                        for (int i = 0; i < pids.size(); i++) {
+                            String pid = pids.get(i);
+                            HashMap<String, Object> info = submissionInfo.get(pid);
+                            int total = 0;
+                            if (info != null) {
+                                if (info.get("isAC") == null) {
+                                    total = (int) info.get("errorNum") * (-1);
+                                    acmStatistics.get(i).setTime(0);
+                                } else {
+                                    total = (int) info.get("errorNum") + 1;
+                                    acmStatistics.get(i).setTime((int) (long) info.get("ACTime") / 60);
+                                }
+                                if (info.get("isFirstAC") != null) {
+                                    if ((boolean) info.get("isFirstAC"))acmStatistics.get(i).setFirst(1);
+                                    else acmStatistics.get(i).setFirst(0);
+                                }
+                            } else {
+                                acmStatistics.get(i).setFirst(0);
+                                acmStatistics.get(i).setTime(0);
+                            }
+                            acmStatistics.get(i).setTotal(total);
+                        }
+                        Map<String,Integer> submitStatistic = new HashMap<>();
+                        acmStatistics.forEach(acmStatistic -> {
+                            if (acmStatistic.getTotal() > 0) {
+                                submitStatistic.put("1",submitStatistic.getOrDefault("1",0) + 1);
+                            } else if (acmStatistic.getTotal() < 0) {
+                                submitStatistic.put("0",submitStatistic.getOrDefault("0",0) + 1);
+                            }
+                        });
+
+                        // 封装
+                        ACMStatisticVO acmStatisticVO = new ACMStatisticVO();
+                        acmStatisticVO.setPids(pids);
+                        List<List<ACMStatistic>> statistics = new ArrayList<>();
+                        statistics.add(acmStatistics);
+                        acmStatisticVO.setStatistics(statistics);
+
+                        userContestInfoVO.setACMStatistic(acmStatisticVO);
+                        userContestInfoVO.setSubmitStatistic(submitStatistic);
+                        contestData.add(userContestInfoVO);
+                        break;
+                    }
+                }
+            }
+        });
+        userHomeInfo.setContestData(contestData);
         // 未通过题目
         List<String> unsolvedProblems = new ArrayList<>();
         for (String displayPid : unsolvedMap.keySet()){
@@ -407,10 +625,6 @@ public class AccountManager {
             untouchedTags.add(allTagList.get(j));
         }
 
-        // 标签分类
-        QueryWrapper<TagClassification> tagClassificationQueryWrapper = new QueryWrapper<>();
-        tagClassificationQueryWrapper.eq("oj","ME").orderByAsc("`rank`");
-        List<TagClassification> classificationList = tagClassificationEntityService.list(tagClassificationQueryWrapper);
 
         // 未涉足的标签和分类
         List<ProblemTagVO> problemTagVOList = new ArrayList<>();
