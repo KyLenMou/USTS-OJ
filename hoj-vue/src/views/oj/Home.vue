@@ -135,7 +135,7 @@
                   align="center"
               >
                 <template v-slot="{ row }">
-                  <span>{{ row.beginTime | fromNow }}</span>
+                  <span>{{ new Date(row.beginTime).toLocaleString() }}</span>
                 </template>
               </vxe-table-column>
             </vxe-table>
@@ -583,8 +583,8 @@ export default {
         },
       });
     },
-    goOtherContest() {
-
+    goOtherContest(event) {
+      window.open(event.row.url);
     },
     goUserHome(username, uid) {
       this.$router.push({

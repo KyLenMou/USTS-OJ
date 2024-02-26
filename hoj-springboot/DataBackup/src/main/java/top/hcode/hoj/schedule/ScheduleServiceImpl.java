@@ -8,6 +8,9 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
 import top.hcode.hoj.dao.common.FileEntityService;
 import top.hcode.hoj.dao.judge.JudgeEntityService;
 import top.hcode.hoj.dao.msg.AdminSysNoticeEntityService;
@@ -40,6 +44,9 @@ import top.hcode.hoj.utils.JsoupUtils;
 import top.hcode.hoj.utils.RedisUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -187,6 +194,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     public void getOjContestsList() {
         // 待格式化的API，需要填充年月查询
         String nowcoderContestAPI = "https://ac.nowcoder.com/acm/calendar/contest?token=&month=%d-%d";
+        String cfContestAPI = "https://codeforces.com/api/contest.list?gym=false";
         // 将获取的比赛列表添加进这里
         List<Map<String, Object>> contestsList = new ArrayList<>();
         // 获取当前年月
@@ -221,6 +229,25 @@ public class ScheduleServiceImpl implements ScheduleService {
                 log.error("爬虫爬取Nowcoder比赛异常----------------------->{}", e.getMessage());
             }
         }
+        // 定制的cf比赛查询接口,ip为172.20.0.9,路径为/getCodeforcesContestList
+        RestTemplate restTemplate = new RestTemplate();
+        // String cfObject = restTemplate.getForObject("http://localhost:6689/getCodeforcesContestList", String.class);
+        String cfObject = restTemplate.getForObject("http://172.20.0.9:6689/getCodeforcesContestList", String.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            List<Map<String, Object>> tempList = objectMapper.readValue(cfObject, new TypeReference<List<Map<String, Object>>>() {
+            });
+            for (Map<String, Object> map : tempList) {
+                map.put("beginTime", Date.from(LocalDateTime.parse((String) map.get("beginTime"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).atZone(ZoneId.systemDefault()).toInstant()));
+                map.put("endTime", Date.from(LocalDateTime.parse((String) map.get("endTime"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).atZone(ZoneId.systemDefault()).toInstant()));
+            }
+            contestsList.addAll(tempList);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+
         // 把比赛列表按照开始时间排序，方便查看
         contestsList.sort((o1, o2) -> {
 
