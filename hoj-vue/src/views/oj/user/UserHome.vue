@@ -475,13 +475,91 @@
     </template>
     <template v-else>
       <!--简介-->
-      <el-row :gutter="15">
-        <el-col :span="24">
+      <el-row :gutter="15" style="margin-top: 90px">
+        <div class="avatar-container">
+          <avatar
+              :username="profile.username"
+              :inline="true"
+              :size="130"
+              color="#FFF"
+              :src="profile.avatar"
+          ></avatar>
+        </div>
+        <el-card>
+          <div class="recent-login">
+            <el-tooltip
+                :content="profile.recentLoginTime | localtime"
+                placement="top"
+            >
+              <el-tag type="success" effect="plain" size="medium">
+                <i class="fa fa-circle">
+                  {{ $t('m.Recent_login_time')
+                  }}{{ profile.recentLoginTime | fromNow }}</i
+                >
+              </el-tag>
+            </el-tooltip>
+          </div>
+          <div class="user-info" style="text-align: center">
+            <p>
+              <span class="emphasis"
+              ><i class="fa fa-user-circle-o" aria-hidden="true"></i>
+                {{ profile.username }}</span
+              >
+              <span class="gender-male male" v-if="profile.gender == 'male'">
+            <i class="fa fa-mars"></i>
+              </span>
+                  <span
+                      class="gender-male female"
+                      v-else-if="profile.gender == 'female'"
+                  >
+            <i class="fa fa-venus"></i>
+          </span>
+            </p>
+            <p v-if="profile.titleName">
+          <span>
+            <el-tag effect="dark" size="small" :color="profile.titleColor">
+              {{ profile.titleName }}
+            </el-tag>
+          </span>
+            </p>
+            <p v-if="profile.nickname">
+            <span>
+            <el-tag
+                effect="plain"
+                size="small"
+                :type="nicknameColor(profile.nickname)"
+            >
+              {{ profile.nickname }}
+            </el-tag>
+          </span>
+            </p>
+            <span class="default-info" v-if="profile.school"
+            ><i class="fa fa-graduation-cap" aria-hidden="true"></i>
+          {{ profile.school }}</span>
+            <span id="icons">
+          <a
+              :href="profile.github"
+              v-if="profile.github"
+              class="icon"
+              target="_blank"
+          >
+            <i class="fa fa-github"> {{ $t('m.Github') }}</i>
+          </a>
+          <a
+              :href="profile.blog"
+              v-if="profile.blog"
+              class="icon"
+              target="_blank"
+          >
+            <i class="fa fa-share-alt-square"> {{ $t('m.Blog') }}</i>
+          </a>
+        </span>
+        <!--<el-col :span="24">
           <el-card>
             <el-row style="display: flex">
               <div style="flex: 0 0 auto">
                 <div class="flex-display">
-                  <!--头像-->
+                  &lt;!&ndash;头像&ndash;&gt;
                   <span>
                   <avatar
                       :username="profile.username"
@@ -491,12 +569,12 @@
                       :src="profile.avatar"
                   ></avatar>
                 </span>
-                  <!--基本信息-->
+                  &lt;!&ndash;基本信息&ndash;&gt;
                   <span class="profile-emphasis">
-                  <!--用户名-->
+                  &lt;!&ndash;用户名&ndash;&gt;
                   <span class="username">
                     {{ profile.username }}
-                    <!--性别-->
+                    &lt;!&ndash;性别&ndash;&gt;
                     <span class="gender-male male" v-if="profile.gender == 'male'">
                       <i class="fa fa-mars"></i>
                     </span>
@@ -505,12 +583,12 @@
                     </span>
                   </span>
                   <br>
-                    <!--昵称-->
+                    &lt;!&ndash;昵称&ndash;&gt;
                   <span class="nickname" v-if="profile.nickname">
                     {{ profile.nickname }}
                   </span>
                   <br><br>
-                    <!--头衔-->
+                    &lt;!&ndash;头衔&ndash;&gt;
                   <span v-if="profile.titleName">
                     <el-tag effect="dark" size="small" :color="profile.titleColor">
                       {{ profile.titleName }}
@@ -520,7 +598,7 @@
                 </div>
               </div>
               <div style="margin-left: auto; text-align: right; line-height: 2;">
-                <!--最近上线时间-->
+                &lt;!&ndash;最近上线时间&ndash;&gt;
                 <el-tooltip
                     :content="profile.recentLoginTime | localtime"
                     placement="top"
@@ -534,13 +612,13 @@
                   </el-tag>
                 </el-tooltip>
                 <br>
-                <!--学校-->
+                &lt;!&ndash;学校&ndash;&gt;
                 <span class="default-info" v-if="profile.school">
                 <i class="fa fa-graduation-cap" aria-hidden="true"></i>
                 {{ profile.school }}
               </span>
                 <br>
-                <!--Github-->
+                &lt;!&ndash;Github&ndash;&gt;
                 <span id="icons">
                 <a
                     :href="profile.github"
@@ -552,7 +630,7 @@
                 </a>
               </span>
                 <br>
-                <!--博客-->
+                &lt;!&ndash;博客&ndash;&gt;
                 <span id="icons">
               <a
                   :href="profile.blog"
@@ -566,8 +644,11 @@
               </div>
             </el-row>
           </el-card>
-        </el-col>
+        </el-col>-->
+          </div>
+        </el-card>
       </el-row>
+
       <!--个人简介-->
       <el-row :gutter="15" class="row-margin-top">
         <el-col :span="24">
@@ -1123,6 +1204,11 @@ export default {
       }).then((res) => {
         this.recentSubmission = res.data.data.records;
       })
+    },
+    nicknameColor(nickname) {
+      let typeArr = ['', 'success', 'info', 'danger', 'warning'];
+      let index = nickname.length % 5;
+      return typeArr[index];
     },
     getStatusColor(status) {
       return "el-tag el-tag--medium status-" + JUDGE_STATUS[status]["color"];
@@ -1720,7 +1806,7 @@ export default {
     left: 50%;
     transform: translate(-50%);
     z-index: 1;
-    margin-top: -90px;
+    margin-top: -80px;
   }
 
   .profile-container .recent-login {
