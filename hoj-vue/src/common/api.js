@@ -168,6 +168,11 @@ axios.interceptors.response.use(
 
 // 处理oj前台的请求
 const ojApi = {
+  // 获取其他oj平台近期比赛
+  getRecentOtherContest() {
+    return ajax('/api/get-recent-other-contest', 'get', {
+    })
+  },
   // Home页的请求
   getWebsiteConfig() {
     return ajax('/api/get-website-config', 'get', {

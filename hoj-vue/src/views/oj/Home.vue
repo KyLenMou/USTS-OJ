@@ -100,6 +100,47 @@
         :sm="24"
         class="phone-margin"
       >
+        <template v-if="recentOtherContest.length">
+          <el-card style="margin-bottom: 20px" :body-style="{'padding-top': 0}">
+            <div
+                slot="header"
+                class="clearfix"
+            >
+              <div class="home-title home-contest">
+                <i class="el-icon-trophy"></i> {{ $t('m.Other_OJ_Contest') }}
+              </div>
+            </div>
+            <vxe-table
+                border="inner"
+                highlight-hover-row
+                stripe
+                :loading="loading.recentOtherContestLoading"
+                auto-resize
+                :data="recentOtherContest"
+                @cell-click="goOtherContest"
+            >
+              <vxe-table-column
+                  field="title"
+                  :title="$t('m.Contests')"
+                  min-width="100"
+                  show-overflow
+                  align="center"
+              >
+              </vxe-table-column>
+              <vxe-table-column
+                  field="beginTime"
+                  :title="$t('m.Start_Time')"
+                  show-overflow
+                  min-width="96"
+                  align="center"
+              >
+                <template v-slot="{ row }">
+                  <span>{{ row.beginTime | fromNow }}</span>
+                </template>
+              </vxe-table-column>
+            </vxe-table>
+          </el-card>
+        </template>
         <template v-if="contests.length">
           <el-card>
             <div
@@ -239,7 +280,7 @@
             </el-card>
           </el-card>
         </template>
-        <el-card :class="contests.length ? 'card-top' : ''">
+        <el-card :class="contests.length ? 'card-top' : ''" :body-style="{'padding-top': 0}">
           <div
             slot="header"
             class="clearfix"
@@ -390,7 +431,17 @@ export default {
         recent7ACRankLoading: false,
         recentUpdatedProblemsLoading: false,
         recentContests: false,
+        recentOtherContestLoading: false,
       },
+      recentOtherContest: [
+        {
+          oj: "NowCoder",
+          beginTime: "2024-03-01T11:00:00.000+0000",
+          endTime: "2024-03-01T13:30:00.000+0000",
+          title: "牛客练习赛122",
+          url: "https://ac.nowcoder.com/acm/contest/75768?from=acm_calendar"
+        }
+      ],
       carouselImgList: [
         {
           url: "https://z1.ax1x.com/2023/12/09/pi20luQ.jpg",
@@ -449,12 +500,18 @@ export default {
     }
     this.CONTEST_STATUS_REVERSE = Object.assign({}, CONTEST_STATUS_REVERSE);
     this.CONTEST_TYPE_REVERSE = Object.assign({}, CONTEST_TYPE_REVERSE);
+    this.getRecentOtherContest();
     this.getHomeCarousel();
     this.getRecentContests();
     this.getRecent7ACRank();
     this.getRecentUpdatedProblemList();
   },
   methods: {
+    getRecentOtherContest() {
+      api.getRecentOtherContest().then((res) => {
+        this.recentOtherContest = res.data.data;
+      });
+    },
     getHomeCarousel() {
       api.getHomeCarousel().then((res) => {
         if (res.data.data != null && res.data.data.length > 0) {
@@ -525,6 +582,9 @@ export default {
           problemID: event.row.problemId,
         },
       });
+    },
+    goOtherContest() {
+
     },
     goUserHome(username, uid) {
       this.$router.push({

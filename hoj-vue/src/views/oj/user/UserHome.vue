@@ -1,23 +1,24 @@
 <template>
   <div class="profile-container" v-loading="loading">
-    <el-row :gutter="15">
-      <el-col :span="24">
-        <el-card>
-          <el-row style="display: flex">
-            <div style="flex: 0 0 auto">
-              <div class="flex-display">
-                <!--头像-->
-                <span>
+    <template v-if="isWideScreen">
+      <el-row :gutter="15">
+        <el-col :span="24">
+          <el-card>
+            <el-row style="display: flex">
+              <div style="flex: 0 0 auto">
+                <div class="flex-display">
+                  <!--头像-->
+                  <span>
                   <avatar
-                    :username="profile.username"
-                    :inline="true"
-                    :size="130"
-                    color="#FFF"
-                    :src="profile.avatar"
-                ></avatar>
+                      :username="profile.username"
+                      :inline="true"
+                      :size="130"
+                      color="#FFF"
+                      :src="profile.avatar"
+                  ></avatar>
                 </span>
-                <!--基本信息-->
-                <span class="profile-emphasis">
+                  <!--基本信息-->
+                  <span class="profile-emphasis">
                   <!--用户名-->
                   <span class="username">
                     {{ profile.username }}
@@ -30,56 +31,56 @@
                     </span>
                   </span>
                   <br>
-                  <!--昵称-->
+                    <!--昵称-->
                   <span class="nickname" v-if="profile.nickname">
                     {{ profile.nickname }}
                   </span>
                   <br><br>
-                  <!--头衔-->
+                    <!--头衔-->
                   <span v-if="profile.titleName">
                     <el-tag effect="dark" size="small" :color="profile.titleColor">
                       {{ profile.titleName }}
                     </el-tag>
                   </span>
                 </span>
-              </div>
-            </div>
-            <div style="flex: 1; margin: 0 20px">
-              <!--个人简介-->
-              <div class="signature-body">
-                <Markdown
-                    v-if="profile.signature"
-                    :isAvoidXss="true"
-                    :content="profile.signature">
-                </Markdown>
-                <div class="markdown-body" v-else>
-                  <p>{{ $t('m.Not_set_yet') }}</p>
                 </div>
               </div>
-            </div>
-            <div style="margin-left: auto; text-align: right; line-height: 2;">
-              <!--最近上线时间-->
-              <el-tooltip
-                  :content="profile.recentLoginTime | localtime"
-                  placement="top"
-              >
-                <el-tag type="success" effect="plain" size="medium">
-                  <i class="fa fa-circle">
-                    {{
-                      $t('m.Recent_login_time')
-                    }}{{ profile.recentLoginTime | fromNow }}</i
-                  >
-                </el-tag>
-              </el-tooltip>
-              <br>
-              <!--学校-->
-              <span class="default-info" v-if="profile.school">
+              <div style="flex: 1; margin: 0 20px">
+                <!--个人简介-->
+                <div class="signature-body">
+                  <Markdown
+                      v-if="profile.signature"
+                      :isAvoidXss="true"
+                      :content="profile.signature">
+                  </Markdown>
+                  <div class="markdown-body" v-else>
+                    <p>{{ $t('m.Not_set_yet') }}</p>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-left: auto; text-align: right; line-height: 2;">
+                <!--最近上线时间-->
+                <el-tooltip
+                    :content="profile.recentLoginTime | localtime"
+                    placement="top"
+                >
+                  <el-tag type="success" effect="plain" size="medium">
+                    <i class="fa fa-circle">
+                      {{
+                        $t('m.Recent_login_time')
+                      }}{{ profile.recentLoginTime | fromNow }}</i
+                    >
+                  </el-tag>
+                </el-tooltip>
+                <br>
+                <!--学校-->
+                <span class="default-info" v-if="profile.school">
                 <i class="fa fa-graduation-cap" aria-hidden="true"></i>
                 {{ profile.school }}
               </span>
-              <br>
-              <!--Github-->
-              <span id="icons">
+                <br>
+                <!--Github-->
+                <span id="icons">
                 <a
                     :href="profile.github"
                     v-if="profile.github"
@@ -89,9 +90,9 @@
                   <i class="fa fa-github"> {{ $t('m.Github') }}</i>
                 </a>
               </span>
-              <br>
-              <!--博客-->
-              <span id="icons">
+                <br>
+                <!--博客-->
+                <span id="icons">
               <a
                   :href="profile.blog"
                   v-if="profile.blog"
@@ -101,115 +102,114 @@
                 <i class="fa fa-share-alt-square"> {{ $t('m.Blog') }}</i>
               </a>
             </span>
-            </div>
-          </el-row>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <el-row :gutter="15" class="row-margin-top">
-      <el-col :span="5">
-        <el-card :body-style="{padding:0}">
-          <el-row style="margin: 20px 20px 0 20px">
-            <el-col :span="24">
-              <!--四个方块-->
-              <el-card shadow="always" class="submission">
-                <div style="display: flex; align-items: center;">
+              </div>
+            </el-row>
+          </el-card>
+        </el-col>
+      </el-row>
+      <el-row :gutter="15" class="row-margin-top">
+        <el-col :span="5">
+          <el-card :body-style="{padding:0}">
+            <el-row style="margin: 20px 20px 0 20px">
+              <el-col :span="24">
+                <!--四个方块-->
+                <el-card shadow="always" class="submission">
+                  <div style="display: flex; align-items: center;">
                   <span>
                     <i class="fa fa-th" aria-hidden="true"></i>
                     {{ $t('m.UserHome_Submissions') }}
                   </span>
-                  <span class="data-number">{{ profile.total }}</span>
-                </div>
-              </el-card>
-              <el-card shadow="always" class="solved">
-                <div style="display: flex; align-items: center;">
+                    <span class="data-number">{{ profile.total }}</span>
+                  </div>
+                </el-card>
+                <el-card shadow="always" class="solved">
+                  <div style="display: flex; align-items: center;">
                   <span>
                     <i class="fa fa-check-circle" aria-hidden="true"></i>
                     {{ $t('m.UserHome_Solved') }}
                   </span>
-                  <span class="data-number">{{ profile.solvedList.length }}</span>
-                </div>
-              </el-card>
-              <el-card shadow="always" class="score">
-                <div style="display: flex; align-items: center;">
+                    <span class="data-number">{{ profile.solvedList.length }}</span>
+                  </div>
+                </el-card>
+                <el-card shadow="always" class="score">
+                  <div style="display: flex; align-items: center;">
                   <span>
                     <i class="fa fa-star" aria-hidden="true"></i>
                     {{ $t('m.UserHome_Score') }}
                   </span>
-                  <span class="data-number">{{ getSumScore(profile.scoreList) }}</span>
-                </div>
-              </el-card>
-              <el-card shadow="always" class="rating">
-                <div style="display: flex; align-items: center;">
+                    <span class="data-number">{{ getSumScore(profile.scoreList) }}</span>
+                  </div>
+                </el-card>
+                <el-card shadow="always" class="rating">
+                  <div style="display: flex; align-items: center;">
                   <span>
                     <i class="fa fa-user-secret" aria-hidden="true"></i>
                     {{ $t('m.UserHome_Rating') }}
                   </span>
-                  <span class="data-number">
+                    <span class="data-number">
                   {{ profile.rating ? profile.rating : '--' }}
                 </span>
-                </div>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+            <el-divider></el-divider>
+            <!--能力知识模型-->
+            <el-row>
+              <el-tooltip
+                  style="text-align: center;color: #409EFF"
+                  placement="top"
+                  effect="light"
+                  :content="$t('m.Model_Explain')">
+                <h1 style="margin: 0">{{ $t('m.Tags_Capability') }}</h1>
+              </el-tooltip>
+              <div style="width: 100%; height: 800px; overflow-y: auto">
+                <ECharts :options="modelOption" style="width: 100%" :style="modelHeight" :autoresize="true"></ECharts>
+              </div>
+            </el-row>
+          </el-card>
+        </el-col>
+
+        <el-col :span="19">
+          <el-row>
+            <el-col :span="24">
+              <el-card>
+                <calendar-heatmap
+                    v-if="loadingCalendarHeatmap"
+                    :values="calendarHeatmapValue"
+                    :end-date="calendarHeatmapEndDate"
+                    :tooltipUnit="$t('m.Calendar_Tooltip_Uint')"
+                    :locale="calendarHeatLocale"
+                    :range-color="['rgb(218, 226, 239)', '#9be9a8', '#40c463', '#30a14e', '#216e39']"
+                >
+                </calendar-heatmap>
               </el-card>
             </el-col>
           </el-row>
-          <el-divider></el-divider>
-          <!--能力知识模型-->
-          <el-row>
-            <el-tooltip
-                style="text-align: center;color: #409EFF"
-                placement="top"
-                effect="light"
-                content="各个标签对应的已通过题目在难度和提交通过以及总题数下的占比">
-              <h1 style="margin: 0">能力达成度</h1>
-            </el-tooltip>
-            <div style="width: 100%; height: 800px; overflow-y: auto">
-              <ECharts :options="modelOption" style="width: 100%" :style="modelHeight" :autoresize="true"></ECharts>
-            </div>
-          </el-row>
-        </el-card>
-      </el-col>
 
-      <el-col :span="19">
-        <el-row>
-          <el-col :span="24">
-            <el-card>
-              <calendar-heatmap
-                  v-if="loadingCalendarHeatmap"
-                  :values="calendarHeatmapValue"
-                  :end-date="calendarHeatmapEndDate"
-                  :tooltipUnit="$t('m.Calendar_Tooltip_Uint')"
-                  :locale="calendarHeatLocale"
-                  :range-color="['rgb(218, 226, 239)', '#9be9a8', '#40c463', '#30a14e', '#216e39']"
-              >
-              </calendar-heatmap>
-            </el-card>
-          </el-col>
-        </el-row>
-
-        <el-row :gutter="15" class="row-margin-top">
-          <el-col :span="14">
-            <!--标签难度饼图-->
-            <el-card class="uniform-height" :body-style="{padding:0}">
-              <div slot="header">
+          <el-row :gutter="15" class="row-margin-top">
+            <el-col :span="14">
+              <!--标签难度饼图-->
+              <el-card class="uniform-height" :body-style="{padding:0}">
+                <div slot="header">
                 <span class="panel-title home-title">
                   <i class="el-icon-pie-chart"></i>
-                  已通过题目的标签和难度统计
+                  {{ $t('m.Tags_Difficulty_Statistics') }}
                 </span>
-              </div>
-              <template v-if="tagDifficultyOption.series[0].data.length && tagDifficultyOption.series[1].data.length">
-                <ECharts :options="tagDifficultyOption" style="height: 350px; width: 100%" :autoresize="true"></ECharts>
-              </template>
-              <template v-else>
-                <el-empty></el-empty>
-              </template>
-            </el-card>
+                </div>
+                <template v-if="tagDifficultyOption.series[0].data.length && tagDifficultyOption.series[1].data.length">
+                  <ECharts :options="tagDifficultyOption" style="height: 350px; width: 100%" :autoresize="true"></ECharts>
+                </template>
+                <template v-else>
+                  <el-empty></el-empty>
+                </template>
+              </el-card>
 
-            <el-card class="row-margin-top uniform-height" :body-style="{padding: 0}">
-              <div slot="header">
+              <el-card class="row-margin-top uniform-height" :body-style="{padding: 0}">
+                <div slot="header">
                 <span class="panel-title home-title">
                   <i class="el-icon-data-analysis"></i>
-                  比赛情况
+                  {{ $t('m.Contest_Statistics') }}
                   <el-select
                       v-if="contestData && contestData.length"
                       v-model="contestSelect"
@@ -224,254 +224,741 @@
                     </el-option>
                   </el-select>
                 </span>
-              </div>
-              <el-row v-if="contestData && contestData.length">
-                <!-- OI -->
-                <template v-if="contestData[contestSelect].contestType">
-                  <el-table
-                      :data="contestData[contestSelect].oistatistic.statistics"
-                      border
-                      style="border-top-width: 0; width: 100%">
-                    <el-table-column
-                        v-for="(pid, index) in contestData[contestSelect].oistatistic.pids"
-                        :key="index"
-                        align="center"
-                    >
-                      <template slot="header" slot-scope="scope">
-                        <el-tooltip placement="top" effect="light" :enterable="false">
-                          <div slot="content">
-                            <h2 style="margin: 0;">
-                              {{ contestData[contestSelect].oistatistic.statistics[0][index].title }}
-                              <el-button
-                                  size="mini"
-                                  :style="utils.getLevelColor(contestData[contestSelect].oistatistic.statistics[0][index].difficulty)"
-                                  style="padding: 5px 10px"
-                              >
-                                {{ utils.getLevelName(contestData[contestSelect].oistatistic.statistics[0][index].difficulty) }}
-                              </el-button>
-                            </h2>
+                </div>
+                <el-row v-if="contestData && contestData.length">
+                  <!-- OI -->
+                  <template v-if="contestData[contestSelect].contestType">
+                    <el-table
+                        :data="contestData[contestSelect].oistatistic.statistics"
+                        border
+                        style="border-top-width: 0; width: 100%">
+                      <el-table-column
+                          v-for="(pid, index) in contestData[contestSelect].oistatistic.pids"
+                          :key="index"
+                          align="center"
+                      >
+                        <template slot="header" slot-scope="scope">
+                          <el-tooltip placement="top" effect="light" :enterable="false">
+                            <div slot="content">
+                              <h2 style="margin: 0;">
+                                {{ contestData[contestSelect].oistatistic.statistics[0][index].title }}
+                                <el-button
+                                    size="mini"
+                                    :style="utils.getLevelColor(contestData[contestSelect].oistatistic.statistics[0][index].difficulty)"
+                                    style="padding: 5px 10px"
+                                >
+                                  {{ utils.getLevelName(contestData[contestSelect].oistatistic.statistics[0][index].difficulty) }}
+                                </el-button>
+                              </h2>
+                            </div>
+                            <div>{{ pid }}</div>
+                          </el-tooltip>
+                        </template>
+                        <template v-if="contestData[contestSelect].oistatistic.statistics[0][index].status > 0">
+                          <div style="backgroundColor: #19BE6B; color: #FFFFFF;">
+                            {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
+                            <br>
+                            {{ contestData[contestSelect].oistatistic.statistics[0][index].time }}ms
                           </div>
-                          <div>{{ pid }}</div>
-                        </el-tooltip>
-                      </template>
-                      <template v-if="contestData[contestSelect].oistatistic.statistics[0][index].status > 0">
-                        <div style="backgroundColor: #19BE6B; color: #FFFFFF;">
-                          {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
-                          <br>
-                          {{ contestData[contestSelect].oistatistic.statistics[0][index].time }}ms
-                        </div>
-                      </template>
-                      <template v-else-if="contestData[contestSelect].oistatistic.statistics[0][index].status < 0">
-                        <div style="backgroundColor: #E87272; color: #FFFFFF;"
-                             v-if="contestData[contestSelect].oistatistic.statistics[0][index].score === 0">
-                          {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
-                          <br>
-                          --ms
-                        </div>
-                        <div style="backgroundColor: #2D8CF0; color: #FFFFFF;"
-                             v-else>
-                          {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
-                          <br>
-                          --ms
-                        </div>
-                      </template>
-                    </el-table-column>
-                  </el-table>
-                </template>
-                <!-- ACM -->
-                <template v-else>
-                  <el-table :data="contestData[contestSelect].acmstatistic.statistics" border
-                            style="border-top-width: 0; width: 100%">
-                    <el-table-column
-                        v-for="(pid, index) in contestData[contestSelect].acmstatistic.pids"
-                        :key="index"
-                        align="center"
-                    >
-                      <template slot="header" slot-scope="scope">
-                        <el-tooltip placement="top" effect="light">
-                          <div slot="content">
-                            <h2 style="margin: 0;">
-                              {{ contestData[contestSelect].acmstatistic.statistics[0][index].title }}
-                              <el-button
-                                  size="mini"
-                                  :style="utils.getLevelColor(contestData[contestSelect].acmstatistic.statistics[0][index].difficulty)"
-                                  style="padding: 5px 10px"
-                              >
-                                {{ utils.getLevelName(contestData[contestSelect].acmstatistic.statistics[0][index].difficulty) }}
-                              </el-button>
-                            </h2>
+                        </template>
+                        <template v-else-if="contestData[contestSelect].oistatistic.statistics[0][index].status < 0">
+                          <div style="backgroundColor: #E87272; color: #FFFFFF;"
+                               v-if="contestData[contestSelect].oistatistic.statistics[0][index].score === 0">
+                            {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
+                            <br>
+                            --ms
                           </div>
-                          <div>{{ pid }}</div>
-                        </el-tooltip>
-                      </template>
-                      <template v-if="contestData[contestSelect].acmstatistic.statistics[0][index].total > 0">
-                        <div style="backgroundColor: #19BE6B; color: #FFFFFF;">
-                          +{{ contestData[contestSelect].acmstatistic.statistics[0][index].total }}
-                          <br>
-                          ( {{ contestData[contestSelect].acmstatistic.statistics[0][index].time }} min )
-                        </div>
-                      </template>
-                      <template v-else-if="contestData[contestSelect].acmstatistic.statistics[0][index].total < 0">
-                        <div style="backgroundColor: #E87272; color: #FFFFFF;">
-                          {{ contestData[contestSelect].acmstatistic.statistics[0][index].total }}
-                          <br>
-                          --
-                        </div>
-                      </template>
-                    </el-table-column>
-                  </el-table>
-                </template>
-              </el-row>
-              <el-empty v-else></el-empty>
-              <el-row>
-                <ECharts :options="contestOption" :autoresize="true" style="height: 280px;width: 100%"></ECharts>
-              </el-row>
-            </el-card>
-          </el-col>
+                          <div style="backgroundColor: #2D8CF0; color: #FFFFFF;"
+                               v-else>
+                            {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
+                            <br>
+                            --ms
+                          </div>
+                        </template>
+                      </el-table-column>
+                    </el-table>
+                  </template>
+                  <!-- ACM -->
+                  <template v-else>
+                    <el-table :data="contestData[contestSelect].acmstatistic.statistics" border
+                              style="border-top-width: 0; width: 100%">
+                      <el-table-column
+                          v-for="(pid, index) in contestData[contestSelect].acmstatistic.pids"
+                          :key="index"
+                          align="center"
+                      >
+                        <template slot="header" slot-scope="scope">
+                          <el-tooltip placement="top" effect="light">
+                            <div slot="content">
+                              <h2 style="margin: 0;">
+                                {{ contestData[contestSelect].acmstatistic.statistics[0][index].title }}
+                                <el-button
+                                    size="mini"
+                                    :style="utils.getLevelColor(contestData[contestSelect].acmstatistic.statistics[0][index].difficulty)"
+                                    style="padding: 5px 10px"
+                                >
+                                  {{ utils.getLevelName(contestData[contestSelect].acmstatistic.statistics[0][index].difficulty) }}
+                                </el-button>
+                              </h2>
+                            </div>
+                            <div>{{ pid }}</div>
+                          </el-tooltip>
+                        </template>
+                        <template v-if="contestData[contestSelect].acmstatistic.statistics[0][index].total > 0">
+                          <div style="backgroundColor: #19BE6B; color: #FFFFFF;">
+                            +{{ contestData[contestSelect].acmstatistic.statistics[0][index].total }}
+                            <br>
+                            ( {{ contestData[contestSelect].acmstatistic.statistics[0][index].time }} min )
+                          </div>
+                        </template>
+                        <template v-else-if="contestData[contestSelect].acmstatistic.statistics[0][index].total < 0">
+                          <div style="backgroundColor: #E87272; color: #FFFFFF;">
+                            {{ contestData[contestSelect].acmstatistic.statistics[0][index].total }}
+                            <br>
+                            --
+                          </div>
+                        </template>
+                      </el-table-column>
+                    </el-table>
+                  </template>
+                </el-row>
+                <el-empty v-else></el-empty>
+                <el-row>
+                  <ECharts :options="contestOption" :autoresize="true" style="height: 280px;width: 100%"></ECharts>
+                </el-row>
+              </el-card>
+            </el-col>
 
-          <el-col :span="10">
-            <!--最近提交-->
-            <el-card class="uniform-height" :body-style="{padding:'8px'}">
-              <div slot="header">
+            <el-col :span="10">
+              <!--最近提交-->
+              <el-card class="uniform-height" :body-style="{padding:'8px'}">
+                <div slot="header">
                 <span class="panel-title home-title">
                   <i class="el-icon-finished"></i>
-                  TA的最近提交
+                  {{ $t('m.Recent_Submissions') }}
                 </span>
-              </div>
-              <template v-if="recentSubmission.length">
-                <el-tooltip
-                    v-for="({displayPid, title , status, submitTime, submitId},index) of recentSubmission"
-                    :key="index"
-                    :class="{'odd-submission': index % 2 === 0}"
-                    placement="top"
-                    effect="light"
-                    open-delay="0.5"
-                >
-                  <div slot="content">
-                    {{ "Run Id: " + submitId }}
-                  </div>
-                  <div class="recent-submission-row" @click="goSubmission(submitId)">
-                    <span style="margin-left: 10px; font-size: 14px; font-weight: bolder">{{ displayPid + '.' }}</span>
-                    <span style="margin-left: 5px; font-size: 18px;">{{ title }}</span>
-                    <span style="margin-left: 10px; font-size: 12px; color: #8A8A8E">
+                </div>
+                <template v-if="recentSubmission.length">
+                  <el-tooltip
+                      v-for="({displayPid, title , status, submitTime, submitId},index) of recentSubmission"
+                      :key="index"
+                      :class="{'odd-submission': index % 2 === 0}"
+                      placement="top"
+                      effect="light"
+                      open-delay="0.5"
+                  >
+                    <div slot="content">
+                      {{ "Run Id: " + submitId }}
+                    </div>
+                    <div class="recent-submission-row" @click="goSubmission(submitId)">
+                      <span style="margin-left: 10px; font-size: 14px; font-weight: bolder">{{ displayPid + '.' }}</span>
+                      <span style="margin-left: 5px; font-size: 18px;">{{ title }}</span>
+                      <span style="margin-left: 10px; font-size: 12px; color: #8A8A8E">
                     {{ submitTime | fromNow }}
                   </span>
-                    <span style="margin-left: auto; margin-right: 10px;" :class="getStatusColor(status)">
+                      <span style="margin-left: auto; margin-right: 10px;" :class="getStatusColor(status)">
                     {{ JUDGE_STATUS[status].short }}
                   </span>
-                  </div>
-                </el-tooltip>
-              </template>
-              <template v-else>
-                <el-empty></el-empty>
-              </template>
-            </el-card>
+                    </div>
+                  </el-tooltip>
+                </template>
+                <template v-else>
+                  <el-empty></el-empty>
+                </template>
+              </el-card>
 
 
-            <el-card class="row-margin-top uniform-height" :body-style="{padding: '0'}">
-              <!--未涉足的标签-->
-              <div slot="header">
+              <el-card class="row-margin-top uniform-height" :body-style="{padding: '0'}">
+                <!--未涉足的标签-->
+                <div slot="header">
                 <span class="panel-title home-title">
                   <i class="el-icon-remove-outline"></i>
-                  尚未涉足的标签
+                  {{ $t('m.Untouched_Tags') }}
                 </span>
-              </div>
-              <template v-if="profile.unsolvedList.length">
-                <div class="tagScroll">
-                  <el-collapse v-model="classificationItem" style="border-width: 0" accordion>
-                    <el-collapse-item
-                        v-for="({classification, tagList}, index) in profile.untouchedTags"
-                        :key="index"
-                        :name="index"
-                        class="tag-collapse">
-                      <div slot="title" style="font-weight: bold; font-size: large">
-                        {{ classification ? classification.name : $t('m.Unclassified') }}
-                      </div>
-                      <el-button
-                          v-for="(tag, id) in tagList"
-                          :key="id"
-                          size="mini"
-                          :style="'margin-bottom:10px;color:#FFF;background-color:' + (tag.color ? tag.color : '#409eff')">
-                        {{ tag.name }}
-                      </el-button>
-                    </el-collapse-item>
-                  </el-collapse>
                 </div>
-              </template>
-              <template v-else>
-                <el-empty description="TA已经涉足了所有标签"></el-empty>
-              </template>
-            </el-card>
-          </el-col>
-        </el-row>
+                <template v-if="profile.unsolvedList.length">
+                  <div class="tagScroll">
+                    <el-collapse v-model="classificationItem" style="border-width: 0" accordion>
+                      <el-collapse-item
+                          v-for="({classification, tagList}, index) in profile.untouchedTags"
+                          :key="index"
+                          :name="index"
+                          class="tag-collapse">
+                        <div slot="title" style="font-weight: bold; font-size: large">
+                          {{ classification ? classification.name : $t('m.Unclassified') }}
+                        </div>
+                        <el-button
+                            v-for="(tag, id) in tagList"
+                            :key="id"
+                            size="mini"
+                            :style="'margin-bottom:10px;color:#FFF;background-color:' + (tag.color ? tag.color : '#409eff')">
+                          {{ tag.name }}
+                        </el-button>
+                      </el-collapse-item>
+                    </el-collapse>
+                  </div>
+                </template>
+                <template v-else>
+                  <el-empty></el-empty>
+                </template>
+              </el-card>
+            </el-col>
+          </el-row>
 
-        <el-row class="row-margin-top">
-          <el-col :span="24">
-            <el-card :body-style="{padding: 0}">
-              <el-collapse v-model="problemListName" accordion>
-                <!--个性化题目推荐-->
-                <el-collapse-item v-if="profile.recommendProblems" name="recommend">
-                  <div slot="title" class="collapse-title">
-                    <i class="el-icon-stopwatch"></i>
-                    个性化题目推荐
-                  </div>
-                  <template v-if="profile.recommendProblems && profile.recommendProblems.length">
-                    <el-button
-                        v-for="problem of profile.recommendProblems"
-                        :key="problem.pid"
-                        :style="utils.getLevelColor(problem.difficulty)"
-                        class="problem-btn"
-                        size="small"
-                        @click="goProblem(problem.pid)"
+          <el-row class="row-margin-top">
+            <el-col :span="24">
+              <el-card :body-style="{padding: 0}">
+                <el-collapse v-model="problemListName" accordion>
+                  <!--个性化题目推荐-->
+                  <el-collapse-item v-if="profile.recommendProblems" name="recommend">
+                    <div slot="title" class="collapse-title">
+                      <i class="el-icon-stopwatch"></i>
+                      {{ $t('m.Recommended_Problems') }}
+                    </div>
+                    <template v-if="profile.recommendProblems && profile.recommendProblems.length">
+                      <el-button
+                          v-for="problem of profile.recommendProblems"
+                          :key="problem.pid"
+                          :style="utils.getLevelColor(problem.difficulty)"
+                          class="problem-btn"
+                          size="small"
+                          @click="goProblem(problem.pid)"
+                      >
+                        {{ problem.title }}
+                      </el-button>
+                    </template>
+                    <template v-else>
+                      <el-empty></el-empty>
+                    </template>
+                  </el-collapse-item>
+                  <!--未通过题目-->
+                  <el-collapse-item name="unsolved">
+                    <div slot="title" class="collapse-title">
+                      <i class="el-icon-circle-close"></i>
+                      {{ $t('m.Unsolved_Problems') }}
+                    </div>
+                    <template v-if="profile.unsolvedList.length">
+                      <br>
+                      <div class="problem-btn tag-collapse" v-for="problemID of profile.unsolvedList" :key="problemID">
+                        <el-button round @click="goProblem(problemID)" size="mini">
+                          {{ problemID }}
+                        </el-button>
+                      </div>
+                    </template>
+                    <template v-else>
+                      <el-empty></el-empty>
+                    </template>
+                  </el-collapse-item>
+                  <!--已通过的题目-->
+                  <el-collapse-item name="solved">
+                    <div slot="title" class="collapse-title">
+                      <i class="el-icon-circle-check"></i>
+                      {{ $t('m.Solved_Problems') }}
+                    </div>
+                    <template v-if="profile.solvedList.length">
+                      <div class="problem-btn tag-collapse" v-for="problemID of profile.solvedList" :key="problemID">
+                        <el-button round @click="goProblem(problemID)" size="mini">
+                          {{ problemID }}
+                        </el-button>
+                      </div>
+                    </template>
+                    <template v-else>
+                      <el-empty :description="$t('m.UserHome_Not_Data')"></el-empty>
+                    </template>
+                  </el-collapse-item>
+                </el-collapse>
+              </el-card>
+            </el-col>
+          </el-row>
+        </el-col>
+      </el-row>
+    </template>
+    <template v-else>
+      <!--简介-->
+      <el-row :gutter="15">
+        <el-col :span="24">
+          <el-card>
+            <el-row style="display: flex">
+              <div style="flex: 0 0 auto">
+                <div class="flex-display">
+                  <!--头像-->
+                  <span>
+                  <avatar
+                      :username="profile.username"
+                      :inline="true"
+                      :size="130"
+                      color="#FFF"
+                      :src="profile.avatar"
+                  ></avatar>
+                </span>
+                  <!--基本信息-->
+                  <span class="profile-emphasis">
+                  <!--用户名-->
+                  <span class="username">
+                    {{ profile.username }}
+                    <!--性别-->
+                    <span class="gender-male male" v-if="profile.gender == 'male'">
+                      <i class="fa fa-mars"></i>
+                    </span>
+                    <span class="gender-male female" v-else-if="profile.gender == 'female'">
+                      <i class="fa fa-venus"></i>
+                    </span>
+                  </span>
+                  <br>
+                    <!--昵称-->
+                  <span class="nickname" v-if="profile.nickname">
+                    {{ profile.nickname }}
+                  </span>
+                  <br><br>
+                    <!--头衔-->
+                  <span v-if="profile.titleName">
+                    <el-tag effect="dark" size="small" :color="profile.titleColor">
+                      {{ profile.titleName }}
+                    </el-tag>
+                  </span>
+                </span>
+                </div>
+              </div>
+              <div style="margin-left: auto; text-align: right; line-height: 2;">
+                <!--最近上线时间-->
+                <el-tooltip
+                    :content="profile.recentLoginTime | localtime"
+                    placement="top"
+                >
+                  <el-tag type="success" effect="plain" size="medium">
+                    <i class="fa fa-circle">
+                      {{
+                        $t('m.Recent_login_time')
+                      }}{{ profile.recentLoginTime | fromNow }}</i
                     >
-                      {{ problem.title }}
+                  </el-tag>
+                </el-tooltip>
+                <br>
+                <!--学校-->
+                <span class="default-info" v-if="profile.school">
+                <i class="fa fa-graduation-cap" aria-hidden="true"></i>
+                {{ profile.school }}
+              </span>
+                <br>
+                <!--Github-->
+                <span id="icons">
+                <a
+                    :href="profile.github"
+                    v-if="profile.github"
+                    class="icon"
+                    target="_blank"
+                >
+                  <i class="fa fa-github"> {{ $t('m.Github') }}</i>
+                </a>
+              </span>
+                <br>
+                <!--博客-->
+                <span id="icons">
+              <a
+                  :href="profile.blog"
+                  v-if="profile.blog"
+                  class="icon"
+                  target="_blank"
+              >
+                <i class="fa fa-share-alt-square"> {{ $t('m.Blog') }}</i>
+              </a>
+            </span>
+              </div>
+            </el-row>
+          </el-card>
+        </el-col>
+      </el-row>
+      <!--个人简介-->
+      <el-row :gutter="15" class="row-margin-top">
+        <el-col :span="24">
+          <el-card>
+            <div slot="header">
+              <span class="panel-title home-title">
+                <i class="el-icon-user"></i>
+                {{ $t('m.Personal_Profile') }}
+              </span>
+            </div>
+            <!--个人简介-->
+            <div class="signature-body">
+              <Markdown
+                  v-if="profile.signature"
+                  :isAvoidXss="true"
+                  :content="profile.signature">
+              </Markdown>
+              <div class="markdown-body" v-else>
+                <p>{{ $t('m.Not_set_yet') }}</p>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+
+      <!--热力图-->
+      <el-row :gutter="15" class="row-margin-top">
+        <el-col :span="24">
+          <el-card>
+            <calendar-heatmap
+                v-if="loadingCalendarHeatmap"
+                :values="calendarHeatmapValue"
+                :end-date="calendarHeatmapEndDate"
+                :tooltipUnit="$t('m.Calendar_Tooltip_Uint')"
+                :locale="calendarHeatLocale"
+                :range-color="['rgb(218, 226, 239)', '#9be9a8', '#40c463', '#30a14e', '#216e39']"
+            >
+            </calendar-heatmap>
+          </el-card>
+        </el-col>
+      </el-row>
+
+      <!--标签难度统计和比赛统计-->
+      <el-row :gutter="15" class="row-margin-top">
+        <el-col :span="24">
+          <el-card class="uniform-height" :body-style="{padding:0}">
+            <div slot="header">
+                <span class="panel-title home-title">
+                  <i class="el-icon-pie-chart"></i>
+                  {{ $t('m.Tags_Difficulty_Statistics') }}
+                </span>
+            </div>
+            <template v-if="tagDifficultyOption.series[0].data.length && tagDifficultyOption.series[1].data.length">
+              <ECharts :options="tagDifficultyOption" style="height: 350px; width: 100%" :autoresize="true"></ECharts>
+            </template>
+            <template v-else>
+              <el-empty></el-empty>
+            </template>
+          </el-card>
+          <el-card class="row-margin-top uniform-height" :body-style="{padding: 0}">
+            <div slot="header">
+              <span class="panel-title home-title">
+                <i class="el-icon-data-analysis"></i>
+                {{ $t('m.Contest_Statistics') }}
+                <el-select
+                    v-if="contestData && contestData.length"
+                    v-model="contestSelect"
+                    placeholder="请选择比赛" style="float: right" size="mini"
+                    @change="changeContest"
+                >
+                  <el-option
+                      v-for="c in contestData"
+                      :key="c.contestId"
+                      :label="c.contestName"
+                      :value="c.order">
+                  </el-option>
+                </el-select>
+              </span>
+            </div>
+            <el-row v-if="contestData && contestData.length">
+              <!-- OI -->
+              <template v-if="contestData[contestSelect].contestType">
+                <el-table
+                    :data="contestData[contestSelect].oistatistic.statistics"
+                    border
+                    style="border-top-width: 0; width: 100%">
+                  <el-table-column
+                      v-for="(pid, index) in contestData[contestSelect].oistatistic.pids"
+                      :key="index"
+                      align="center"
+                  >
+                    <template slot="header" slot-scope="scope">
+                      <el-tooltip placement="top" effect="light" :enterable="false">
+                        <div slot="content">
+                          <h2 style="margin: 0;">
+                            {{ contestData[contestSelect].oistatistic.statistics[0][index].title }}
+                            <el-button
+                                size="mini"
+                                :style="utils.getLevelColor(contestData[contestSelect].oistatistic.statistics[0][index].difficulty)"
+                                style="padding: 5px 10px"
+                            >
+                              {{ utils.getLevelName(contestData[contestSelect].oistatistic.statistics[0][index].difficulty) }}
+                            </el-button>
+                          </h2>
+                        </div>
+                        <div>{{ pid }}</div>
+                      </el-tooltip>
+                    </template>
+                    <template v-if="contestData[contestSelect].oistatistic.statistics[0][index].status > 0">
+                      <div style="backgroundColor: #19BE6B; color: #FFFFFF;">
+                        {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
+                        <br>
+                        {{ contestData[contestSelect].oistatistic.statistics[0][index].time }}ms
+                      </div>
+                    </template>
+                    <template v-else-if="contestData[contestSelect].oistatistic.statistics[0][index].status < 0">
+                      <div style="backgroundColor: #E87272; color: #FFFFFF;"
+                           v-if="contestData[contestSelect].oistatistic.statistics[0][index].score === 0">
+                        {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
+                        <br>
+                        --ms
+                      </div>
+                      <div style="backgroundColor: #2D8CF0; color: #FFFFFF;"
+                           v-else>
+                        {{ contestData[contestSelect].oistatistic.statistics[0][index].score }}
+                        <br>
+                        --ms
+                      </div>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </template>
+              <!-- ACM -->
+              <template v-else>
+                <el-table :data="contestData[contestSelect].acmstatistic.statistics" border
+                          style="border-top-width: 0; width: 100%">
+                  <el-table-column
+                      v-for="(pid, index) in contestData[contestSelect].acmstatistic.pids"
+                      :key="index"
+                      align="center"
+                  >
+                    <template slot="header" slot-scope="scope">
+                      <el-tooltip placement="top" effect="light">
+                        <div slot="content">
+                          <h2 style="margin: 0;">
+                            {{ contestData[contestSelect].acmstatistic.statistics[0][index].title }}
+                            <el-button
+                                size="mini"
+                                :style="utils.getLevelColor(contestData[contestSelect].acmstatistic.statistics[0][index].difficulty)"
+                                style="padding: 5px 10px"
+                            >
+                              {{ utils.getLevelName(contestData[contestSelect].acmstatistic.statistics[0][index].difficulty) }}
+                            </el-button>
+                          </h2>
+                        </div>
+                        <div>{{ pid }}</div>
+                      </el-tooltip>
+                    </template>
+                    <template v-if="contestData[contestSelect].acmstatistic.statistics[0][index].total > 0">
+                      <div style="backgroundColor: #19BE6B; color: #FFFFFF;">
+                        +{{ contestData[contestSelect].acmstatistic.statistics[0][index].total }}
+                        <br>
+                        ( {{ contestData[contestSelect].acmstatistic.statistics[0][index].time }} min )
+                      </div>
+                    </template>
+                    <template v-else-if="contestData[contestSelect].acmstatistic.statistics[0][index].total < 0">
+                      <div style="backgroundColor: #E87272; color: #FFFFFF;">
+                        {{ contestData[contestSelect].acmstatistic.statistics[0][index].total }}
+                        <br>
+                        --
+                      </div>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </template>
+            </el-row>
+            <el-empty v-else></el-empty>
+            <el-row>
+              <ECharts :options="contestOption" :autoresize="true" style="height: 280px;width: 100%"></ECharts>
+            </el-row>
+          </el-card>
+        </el-col>
+      </el-row>
+
+      <!--标签达成度-->
+      <el-row :gutter="15" class="row-margin-top">
+        <el-col :span="24">
+          <el-card :body-style="{padding:0}">
+            <el-row style="margin: 20px 20px 0 20px">
+              <el-col :span="24">
+                <!--四个方块-->
+                <el-card shadow="always" class="submission">
+                  <div style="display: flex; align-items: center;">
+                  <span>
+                    <i class="fa fa-th" aria-hidden="true"></i>
+                    {{ $t('m.UserHome_Submissions') }}
+                  </span>
+                    <span class="data-number">{{ profile.total }}</span>
+                  </div>
+                </el-card>
+                <el-card shadow="always" class="solved">
+                  <div style="display: flex; align-items: center;">
+                  <span>
+                    <i class="fa fa-check-circle" aria-hidden="true"></i>
+                    {{ $t('m.UserHome_Solved') }}
+                  </span>
+                    <span class="data-number">{{ profile.solvedList.length }}</span>
+                  </div>
+                </el-card>
+                <el-card shadow="always" class="score">
+                  <div style="display: flex; align-items: center;">
+                  <span>
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                    {{ $t('m.UserHome_Score') }}
+                  </span>
+                    <span class="data-number">{{ getSumScore(profile.scoreList) }}</span>
+                  </div>
+                </el-card>
+                <el-card shadow="always" class="rating">
+                  <div style="display: flex; align-items: center;">
+                  <span>
+                    <i class="fa fa-user-secret" aria-hidden="true"></i>
+                    {{ $t('m.UserHome_Rating') }}
+                  </span>
+                    <span class="data-number">
+                  {{ profile.rating ? profile.rating : '--' }}
+                </span>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+            <el-divider></el-divider>
+            <!--能力知识模型-->
+            <el-row>
+              <el-tooltip
+                  style="text-align: center;color: #409EFF"
+                  placement="top"
+                  effect="light"
+                  :content="$t('m.Model_Explain')">
+                <h1 style="margin: 0">{{ $t('m.Tags_Capability') }}</h1>
+              </el-tooltip>
+              <div style="width: 100%; height: 350px; overflow-y: auto">
+                <ECharts :options="modelOption" style="width: 100%" :style="modelHeight" :autoresize="true"></ECharts>
+              </div>
+            </el-row>
+          </el-card>
+        </el-col>
+      </el-row>
+
+      <!--近期提交+未涉足标签-->
+      <el-row :gutter="15" class="row-margin-top">
+        <el-col :span="24">
+          <el-card class="uniform-height" :body-style="{padding:'8px'}">
+            <div slot="header">
+            <span class="panel-title home-title">
+              <i class="el-icon-finished"></i>
+              {{ $t('m.Recent_Submissions') }}
+            </span>
+            </div>
+            <template v-if="recentSubmission.length">
+              <el-tooltip
+                  v-for="({displayPid, title , status, submitTime, submitId},index) of recentSubmission"
+                  :key="index"
+                  :class="{'odd-submission': index % 2 === 0}"
+                  placement="top"
+                  effect="light"
+                  open-delay="0.5"
+              >
+                <div slot="content">
+                  {{ "Run Id: " + submitId }}
+                </div>
+                <div class="recent-submission-row" @click="goSubmission(submitId)">
+                  <span style="margin-left: 10px; font-size: 14px; font-weight: bolder">{{ displayPid + '.' }}</span>
+                  <span style="margin-left: 5px; font-size: 18px;">{{ title }}</span>
+                  <span style="margin-left: 10px; font-size: 12px; color: #8A8A8E">
+                {{ submitTime | fromNow }}
+              </span>
+                  <span style="margin-left: auto; margin-right: 10px;" :class="getStatusColor(status)">
+                {{ JUDGE_STATUS[status].short }}
+              </span>
+                </div>
+              </el-tooltip>
+            </template>
+            <template v-else>
+              <el-empty></el-empty>
+            </template>
+          </el-card>
+          <el-card class="row-margin-top uniform-height" :body-style="{padding: '0'}">
+                <!--未涉足的标签-->
+                <div slot="header">
+                <span class="panel-title home-title">
+                  <i class="el-icon-remove-outline"></i>
+                  {{ $t('m.Untouched_Tags') }}
+                </span>
+                </div>
+                <template v-if="profile.unsolvedList.length">
+                  <div class="tagScroll">
+                    <el-collapse v-model="classificationItem" style="border-width: 0" accordion>
+                      <el-collapse-item
+                          v-for="({classification, tagList}, index) in profile.untouchedTags"
+                          :key="index"
+                          :name="index"
+                          class="tag-collapse">
+                        <div slot="title" style="font-weight: bold; font-size: large">
+                          {{ classification ? classification.name : $t('m.Unclassified') }}
+                        </div>
+                        <el-button
+                            v-for="(tag, id) in tagList"
+                            :key="id"
+                            size="mini"
+                            :style="'margin-bottom:10px;color:#FFF;background-color:' + (tag.color ? tag.color : '#409eff')">
+                          {{ tag.name }}
+                        </el-button>
+                      </el-collapse-item>
+                    </el-collapse>
+                  </div>
+                </template>
+                <template v-else>
+                  <el-empty></el-empty>
+                </template>
+              </el-card>
+        </el-col>
+      </el-row>
+
+      <!--题目列表-->
+      <el-row class="row-margin-top">
+        <el-col :span="24">
+          <el-card :body-style="{padding: 0}">
+            <el-collapse v-model="problemListName" accordion>
+              <!--个性化题目推荐-->
+              <el-collapse-item v-if="profile.recommendProblems" name="recommend">
+                <div slot="title" class="collapse-title">
+                  <i class="el-icon-stopwatch"></i>
+                  {{ $t('m.Recommended_Problems') }}
+                </div>
+                <template v-if="profile.recommendProblems && profile.recommendProblems.length">
+                  <el-button
+                      v-for="problem of profile.recommendProblems"
+                      :key="problem.pid"
+                      :style="utils.getLevelColor(problem.difficulty)"
+                      class="problem-btn"
+                      size="small"
+                      @click="goProblem(problem.pid)"
+                  >
+                    {{ problem.title }}
+                  </el-button>
+                </template>
+                <template v-else>
+                  <el-empty></el-empty>
+                </template>
+              </el-collapse-item>
+              <!--未通过题目-->
+              <el-collapse-item name="unsolved">
+                <div slot="title" class="collapse-title">
+                  <i class="el-icon-circle-close"></i>
+                  {{ $t('m.Unsolved_Problems') }}
+                </div>
+                <template v-if="profile.unsolvedList.length">
+                  <br>
+                  <div class="problem-btn tag-collapse" v-for="problemID of profile.unsolvedList" :key="problemID">
+                    <el-button round @click="goProblem(problemID)" size="mini">
+                      {{ problemID }}
                     </el-button>
-                  </template>
-                  <template v-else>
-                    <el-empty></el-empty>
-                  </template>
-                </el-collapse-item>
-                <!--未通过题目-->
-                <el-collapse-item name="unsolved">
-                  <div slot="title" class="collapse-title">
-                    <i class="el-icon-circle-close"></i>
-                    未通过题目列表
                   </div>
-                  <template v-if="profile.unsolvedList.length">
-                    <br>
-                    <div class="problem-btn tag-collapse" v-for="problemID of profile.unsolvedList" :key="problemID">
-                      <el-button round @click="goProblem(problemID)" size="mini">
-                        {{ problemID }}
-                      </el-button>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <el-empty description="TA没有未通过的题目"></el-empty>
-                  </template>
-                </el-collapse-item>
-                <!--已通过的题目-->
-                <el-collapse-item name="solved">
-                  <div slot="title" class="collapse-title">
-                    <i class="el-icon-circle-check"></i>
-                    已通过题目列表
+                </template>
+                <template v-else>
+                  <el-empty></el-empty>
+                </template>
+              </el-collapse-item>
+              <!--已通过的题目-->
+              <el-collapse-item name="solved">
+                <div slot="title" class="collapse-title">
+                  <i class="el-icon-circle-check"></i>
+                  {{ $t('m.Solved_Problems') }}
+                </div>
+                <template v-if="profile.solvedList.length">
+                  <div class="problem-btn tag-collapse" v-for="problemID of profile.solvedList" :key="problemID">
+                    <el-button round @click="goProblem(problemID)" size="mini">
+                      {{ problemID }}
+                    </el-button>
                   </div>
-                  <template v-if="profile.solvedList.length">
-                    <div class="problem-btn tag-collapse" v-for="problemID of profile.solvedList" :key="problemID">
-                      <el-button round @click="goProblem(problemID)" size="mini">
-                        {{ problemID }}
-                      </el-button>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <el-empty :description="$t('m.UserHome_Not_Data')"></el-empty>
-                  </template>
-                </el-collapse-item>
-              </el-collapse>
-            </el-card>
-          </el-col>
-        </el-row>
-      </el-col>
-    </el-row>
+                </template>
+                <template v-else>
+                  <el-empty :description="$t('m.UserHome_Not_Data')"></el-empty>
+                </template>
+              </el-collapse-item>
+            </el-collapse>
+          </el-card>
+        </el-col>
+      </el-row>
+    </template>
   </div>
 </template>
 
@@ -499,7 +986,15 @@ export default {
     CalendarHeatmap,
     Markdown
   },
+  destroyed() {
+    // 组件销毁时移除监听器
+    window.removeEventListener('resize', this.checkScreenWidth);
+  },
   methods: {
+    // 页面宽度
+    checkScreenWidth() {
+      this.isWideScreen = window.innerWidth >= 1050;
+    },
     ...mapActions(['changeDomTitle']),
     changeContest() {
       this.changeContestOption();
@@ -695,6 +1190,7 @@ export default {
   },
   data() {
     return {
+      isWideScreen: true, // 默认为宽屏
       problemListName: 'unsolved',
       classificationItem: 0,
       collapseItem: 'untouchedTagsItem',
@@ -1087,6 +1583,10 @@ export default {
     this.JUDGE_STATUS_RESERVE = Object.assign({}, JUDGE_STATUS_RESERVE);
     this.CONTEST_STATUS = Object.assign({}, CONTEST_STATUS);
     this.RULE_TYPE = Object.assign({}, RULE_TYPE);
+    // 页面加载时判断页面宽度
+    this.checkScreenWidth();
+    // 监听窗口大小变化，动态判断页面宽度
+    window.addEventListener('resize', this.checkScreenWidth);
   },
   watch: {
     $route(newVal, oldVal) {

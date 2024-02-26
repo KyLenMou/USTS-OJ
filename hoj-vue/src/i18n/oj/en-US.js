@@ -109,6 +109,7 @@ export const m = {
   Update_Password: 'Update Password',
   Update_Email: 'Update Email',
   Update_Mobile: 'Update Mobile',
+  Captcha: 'Captcha',
   The_new_password_does_not_change: 'The new password doesn\'t change.',
   The_new_email_does_not_change: 'The new email doesn\'t change.',
   The_new_mobile_does_not_change: 'The new mobile doesn\'t change.',
@@ -126,7 +127,7 @@ export const m = {
   The_new_email_cannot_be_empty: 'The new email is required.',
 
 
-  // /components/oj/setting/UserInfo.vue 
+  // /components/oj/setting/UserInfo.vue
   Avatar_Setting: 'Avatar Setting',
   UserInfo_Setting: 'User Info Setting',
   Upload_avatar_hint: 'Drag and drop the avatar here, or click here.',
@@ -164,24 +165,34 @@ export const m = {
   Difficulty_Statistics:'Difficulty Statistics',
   Problems:'Problems',
   Calendar_Tooltip_Uint:'submissions',
-  Jan: 'Jan', 
-  Feb: 'Feb', 
-  Mar: 'Mar', 
-  Apr: 'Apr', 
+  // 新增
+  Tags_Difficulty_Statistics:'Tags Difficulty Statistics',
+  Recent_Submissions:'Recent Submissions',
+  Contest_Statistics:'Contest Statistics',
+  Untouched_Tags:'Untouched Tags',
+  Unsolved_Problems:'Unsolved Problems',
+  Recommended_Problems:'Recommended Problems',
+  Solved_Problems:'Solved Problems',
+  Tags_Capability:'Tags Capability',
+  Model_Explain:'The proportion of passed questions corresponding to each label in terms of difficulty, submission and total number of questions',
+  Jan: 'Jan',
+  Feb: 'Feb',
+  Mar: 'Mar',
+  Apr: 'Apr',
   May: 'May',
-  Jun: 'Jun', 
+  Jun: 'Jun',
   Jul: 'Jul',
-  Aug: 'Aug', 
-  Sep: 'Sep', 
-  Oct: 'Oct', 
-  Nov: 'Nov', 
+  Aug: 'Aug',
+  Sep: 'Sep',
+  Oct: 'Oct',
+  Nov: 'Nov',
   Dec: 'Dec',
-  Sun: 'Sun', 
-  Mon: 'Mon', 
-  Tue: 'Tue', 
-  Wed: 'Wed', 
-  Thu: 'Thu', 
-  Fri: 'Fri', 
+  Sun: 'Sun',
+  Mon: 'Mon',
+  Tue: 'Tue',
+  Wed: 'Wed',
+  Thu: 'Thu',
+  Fri: 'Fri',
   Sat: 'Sat',
   Less:'Less',
   More:'More',
@@ -204,6 +215,7 @@ export const m = {
   Welcome_to: 'Welcome to ',
   Recent_7_Days_AC_Rank: 'Rank: Accepted In The Last Week',
   Other_OJ_Contest: 'Other Online Judge Contest',
+  Start_Time: 'Start Time',
   Latest_Problem: 'Latest Problem',
   Supported_Remote_Online_Judge: 'Supported Remote Online Judge',
   Statistics_Submissions_In_The_Last_Week: 'Statistics: Submissions In The Last Week',
@@ -223,6 +235,7 @@ export const m = {
   Problem_ID: 'Problem ID',
   Total: 'Total',
   AC_Rate: 'AC Rate',
+  AC: 'AC',
   Score: 'Score',
 
   // /views/oj/problem/problemList.vue
@@ -236,7 +249,7 @@ export const m = {
   Pick_a_random_question: 'Pick a random question',
   Touch_Get_Status: 'Please touch or hover the mouse to the designated problem line to view the submission status',
   Good_luck_to_you: 'Good luck to you!',
-  
+
   // /views/oj/problem/Problem.vue
   Problem_Description: 'Problem Description',
   My_Submission: 'My Submission',
@@ -383,7 +396,7 @@ export const m = {
   Liked: 'Liked',
   Report_Reason: 'Report Reason',
   The_report_label_and_reason_cannot_be_empty: 'The report label and reason cannot be empty.',
-  
+
   // 404.vue
   Page_Not_Found:"Sorry, the page can't be found",
   Go_Home: 'Go Home',
@@ -708,9 +721,10 @@ export const m = {
   Back_To_Admin_Contest_List:'Back to Admin Contest List',
   Back_To_Contest_List:'Back to Contest List',
   Back_Admin_Contest_Problem_List:'Back to Admin Contest Problem List',
-  
+
   // /views/oj/group/GroupDiscussionList.vue
   No_Discussion: 'No Discussion',
+  Problem_Discussion:'Problem Discussion',
 
   // /views/oj/group/GroupProblemList.vue
   Cancel_Admin:'Cancel Admin',

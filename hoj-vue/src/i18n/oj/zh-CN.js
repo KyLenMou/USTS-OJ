@@ -109,6 +109,7 @@ export const m = {
   Update_Password: '更新密码',
   Update_Email: '更新邮箱',
   Update_Mobile: '更新手机号',
+  Captcha: '验证码',
   The_new_password_does_not_change: '新密码未变动',
   The_new_email_does_not_change: '新邮箱未变动',
   The_new_mobile_does_not_change: '新手机号未变动',
@@ -163,24 +164,34 @@ export const m = {
   Difficulty_Statistics:'难度统计',
   Problems:'题',
   Calendar_Tooltip_Uint:'次提交',
-  Jan: '一月', 
-  Feb: '二月', 
-  Mar: '三月', 
-  Apr: '四月', 
+  // 新增
+  Tags_Difficulty_Statistics:'标签和难度统计',
+  Recent_Submissions:'TA的最近提交',
+  Contest_Statistics:'比赛情况',
+  Untouched_Tags:'尚未涉足的标签',
+  Recommended_Problems:'个性化题目推荐',
+  Unsolved_Problems:'未通过题目列表',
+  Solved_Problems:'已通过题目列表',
+  Tags_Capability:'标签达成度',
+  Model_Explain:'各个标签对应的已通过题目在难度和提交通过以及总题数下的占比',
+  Jan: '一月',
+  Feb: '二月',
+  Mar: '三月',
+  Apr: '四月',
   May: '五月',
-  Jun: '六月', 
+  Jun: '六月',
   Jul: '七月',
-  Aug: '八月', 
-  Sep: '九月', 
-  Oct: '十月', 
-  Nov: '十一月', 
+  Aug: '八月',
+  Sep: '九月',
+  Oct: '十月',
+  Nov: '十一月',
   Dec: '十二月',
-  Sun: '周日', 
-  Mon: '周一', 
-  Tue: '周二', 
-  Wed: '周三', 
-  Thu: '周四', 
-  Fri: '周五', 
+  Sun: '周日',
+  Mon: '周一',
+  Tue: '周二',
+  Wed: '周三',
+  Thu: '周四',
+  Fri: '周五',
   Sat: '周六',
   Less:'较少',
   More:'较多',
@@ -204,6 +215,7 @@ export const m = {
   Welcome_to: '欢迎使用 ',
   Recent_7_Days_AC_Rank: '最近一周过题榜单',
   Other_OJ_Contest: '其它OJ的近期比赛',
+  Start_Time: '开始时间',
   Latest_Problem: '最新题目',
   Supported_Remote_Online_Judge: '支持的远程评测平台',
   Statistics_Submissions_In_The_Last_Week: '最近一周提交统计',
@@ -224,6 +236,7 @@ export const m = {
   Problem_ID: '题目ID',
   Total: '总数',
   AC_Rate: 'AC 通过率',
+  AC: '通过',
   Score: '分数',
 
   // /views/oj/problem/problemList.vue
@@ -473,6 +486,7 @@ export const m = {
 
   // /views/oj/contest/children/ContestRejudgeAdmin.vue
   Contest_Rejudge: '比赛重新测评',
+  ID: 'ID',
   Rejudge_All: '重测',
   Contest_Rejudge_Tips: '您确定重测所有提交记录?',
   Rejudge_successfully: '重测成功',
@@ -634,7 +648,7 @@ export const m = {
   Training_Total_Problems: '总题数',
   Record_List: '记录榜单',
   To_Enter_Training_Need_Password: '请输入该私有训练的密码，方可进入',
-  Enter_the_training_password: '请输入私有训练的密码',  
+  Enter_the_training_password: '请输入私有训练的密码',
   Register_training_successfully: '验证训练密码成功！',
 
   // /views/oj/training/TrainingRank.vue
@@ -685,7 +699,7 @@ export const m = {
   Disband_Group:'解散团队',
   Disband_Group_Tips:'您是否确定要解散该团队？',
   Disband_Successfully:'解散成功',
-  
+
   Group_Number: '团队编号',
   Group_Home: '主页',
   Group_Problem: '题目',
@@ -703,12 +717,13 @@ export const m = {
 
   // /views/oj/group/GroupDiscussionList.vue
   No_Discussion: '暂无讨论',
+  Problem_Discussion:'题目讨论',
 
   // /views/oj/group/GroupProblemList.vue
   Cancel_Admin:'取消管理',
   Back_To_Problem_List:'返回题目列表',
   Back_To_Admin_Problem_List:'返回题目管理列表',
-  
+
   // /views/oj/group/GroupMemberList.vue
   Applying: '申请中',
   Refused: '已拒绝',
@@ -727,7 +742,7 @@ export const m = {
   Back_To_Admin_Training_List:'返回训练管理列表',
   Back_To_Training_List:'返回训练列表',
   Back_Admin_Training_Problem_List:'返回训练题目管理列表',
-  
+
   // /views/oj/group/GroupContestList.vue
   Back_To_Admin_Contest_List:'返回比赛管理列表',
   Back_To_Contest_List:'返回比赛列表',
@@ -735,7 +750,7 @@ export const m = {
 
   // /views/oj/group/GroupSetting.vue
   Add_From_Group_Problem: '从团队题库添加题目',
-  
+
   // /views/oj/group/GroupSetting.vue
   Group_Visible: '在团队列表显示',
   Group_Not_Visible: '在团队列表隐藏',
