@@ -231,12 +231,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
         // 定制的cf比赛查询接口,ip为172.20.0.9,路径为/getCodeforcesContestList
         RestTemplate restTemplate = new RestTemplate();
-        // String cfObject = restTemplate.getForObject("http://localhost:6689/getCodeforcesContestList", String.class);
-        String cfObject = restTemplate.getForObject("http://172.20.0.9:6689/getCodeforcesContestList", String.class);
+        // String otherContests = restTemplate.getForObject("http://localhost:6689/get-oj-contest-list", String.class);
+        String otherContests = restTemplate.getForObject("http://172.20.0.9:6689/get-oj-contest-list", String.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            List<Map<String, Object>> tempList = objectMapper.readValue(cfObject, new TypeReference<List<Map<String, Object>>>() {
+            List<Map<String, Object>> tempList = objectMapper.readValue(otherContests, new TypeReference<List<Map<String, Object>>>() {
             });
             for (Map<String, Object> map : tempList) {
                 map.put("beginTime", Date.from(LocalDateTime.parse((String) map.get("beginTime"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).atZone(ZoneId.systemDefault()).toInstant()));

@@ -414,9 +414,10 @@ public class AccountManager {
             IPage contestRank = null;
             try {
                 contestRank = contestManager.getContestRank(contestRankDTO);
-            } catch (StatusFailException | StatusForbiddenException e) {
-                return;
+            } catch (Exception e) {
+                // 未登录
             }
+            if (contestRank == null) return;
             List records = contestRank.getRecords();
             if (records == null || records.isEmpty()) return;
             UserContestInfoVO userContestInfoVO = new UserContestInfoVO();

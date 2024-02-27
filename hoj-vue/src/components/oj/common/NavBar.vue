@@ -73,7 +73,7 @@
                 $t('m.NavBar_Introduction')
               }}</el-menu-item>
               <el-menu-item index="/developer">{{
-                $t('m.NavBar_Developer')
+                $t('m.NavBar_About_Us')
               }}</el-menu-item>
             </el-submenu>
         </template>
@@ -598,7 +598,7 @@
               active-class="mobile-menu-active"
             >
               <mu-list-item-title>{{
-                $t('m.NavBar_Developer')
+                $t('m.NavBar_About_Us')
               }}</mu-list-item-title>
             </mu-list-item>
           </mu-list-item>

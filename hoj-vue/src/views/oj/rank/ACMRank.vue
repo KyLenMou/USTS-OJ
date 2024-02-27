@@ -197,9 +197,9 @@ export default {
             type: 'value',
             axisLabel: {
               rotate: 50,
-              textStyle: {
-                fontSize: '12em',
-              },
+              // textStyle: {
+              //   fontSize: '12em',
+              // },
             },
           },
         ],
