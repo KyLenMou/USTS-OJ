@@ -82,6 +82,11 @@ public class HomeController {
         return homeService.getRecentOtherContest();
     }
 
+    @GetMapping("/get-daily-problem")
+    public CommonResult<List<HashMap<String, Object>>> getDailyProblem() {
+        return homeService.getDailyProblem();
+    }
+
 
     /**
      * @MethodName getCommonAnnouncement

@@ -127,15 +127,21 @@
               ><i class="fa fa-list navbar-icon"></i>{{ $t('m.Problem_List') }}</el-menu-item
             >
         </template>
-
           <template v-if="!isAuthenticated">
             <div class="btn-menu">
-              <el-button 
-                type="primary" 
-                size="medium" 
+              <el-button
+                type="warning"
+                size="medium"
+                round
+                @click="goToDailyProblem"
+              >{{ $t('m.Daily_Problem') }}
+              </el-button>
+              <el-button
+                type="primary"
+                size="medium"
                 round
                 @click="handleBtnClick('Login')"
-                >{{ $t('m.NavBar_Login') }}
+              >{{ $t('m.NavBar_Login') }}
               </el-button>
               <el-button
                 v-if="websiteConfig.register"
@@ -240,6 +246,15 @@
                 </el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
+            <div class="btn-menu">
+              <el-button
+                type="warning"
+                size="medium"
+                round
+                @click="goToDailyProblem"
+              >{{ $t('m.Daily_Problem') }}
+              </el-button>
+            </div>
           </template>
         </el-menu>
       </div>
@@ -602,6 +617,17 @@
               }}</mu-list-item-title>
             </mu-list-item>
           </mu-list-item>
+
+          <mu-list-item
+            button
+            @click="goToDailyProblem"
+            active-class="mobile-menu-active"
+          >
+            <mu-list-item-action>
+              <mu-icon value=":el-icon-s-order" size="24"></mu-icon>
+            </mu-list-item-action>
+            <mu-list-item-title>{{ $t('m.Daily_Problem') }}</mu-list-item-title>
+          </mu-list-item>
         </mu-list>
       </mu-drawer>
     </div>
@@ -651,12 +677,14 @@ export default {
         this.getUnreadMsgCount();
       }, 120 * 1000);
     }
+    this.getDailyProblem();
   },
   beforeDestroy() {
     clearInterval(this.msgTimer);
   },
   data() {
     return {
+      dailyProblemUrl: '',
       mode:'defalut',
       centerDialogVisible: false,
       mobileNar: false,
@@ -670,6 +698,16 @@ export default {
     };
   },
   methods: {
+    getDailyProblem() {
+      api.getDailyProblem().then((res) => {
+        const arr = res.data.data;
+        this.dailyProblemUrl = arr[0].url
+      }, (err) => {
+      });
+    },
+    goToDailyProblem() {
+      window.open(this.dailyProblemUrl);
+    },
     ...mapActions(['changeModalStatus']),
     page_width() {
       let screenWidth = window.screen.width;

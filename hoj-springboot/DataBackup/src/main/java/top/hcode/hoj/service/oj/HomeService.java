@@ -23,6 +23,8 @@ public interface HomeService {
 
     @Deprecated
     public CommonResult<List<HashMap<String, Object>>> getRecentOtherContest();
+    @Deprecated
+    public CommonResult<List<HashMap<String, Object>>> getDailyProblem();
 
     public CommonResult<IPage<AnnouncementVO>> getCommonAnnouncement(Integer limit, Integer currentPage);
 

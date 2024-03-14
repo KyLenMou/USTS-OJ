@@ -189,6 +189,7 @@ public class ScheduleServiceImpl implements ScheduleService {
      * endTime: "2020-11-08T08:00:00Z",
      */
     @Scheduled(cron = "0 0 0/2 * * *")
+    // @Scheduled(cron = "*/10 * * * * *")
 //    @Scheduled(cron = "0/5 * * * * *")
     @Override
     public void getOjContestsList() {
@@ -263,6 +264,18 @@ public class ScheduleServiceImpl implements ScheduleService {
         redisUtils.set(redisKey, contestsList, 60 * 60 * 24);
         // 增加log提示
         log.info("获取牛客API的比赛列表成功！共获取数据" + contestsList.size() + "条");
+
+        // 获取力扣每日一题(为了方便直接写在这个方法里了,后续如果有更多接口建议新写个方法)
+        // String dailyProblem = restTemplate.getForObject("http://localhost:6689/get-daily-problem", String.class);
+        String dailyProblem = restTemplate.getForObject("http://172.20.0.9:6689/get-oj-contest-list", String.class);
+        objectMapper = new ObjectMapper();
+        try {
+            // Parse the JSON string into a list of maps
+            List<Map<String, String>> list = objectMapper.readValue(dailyProblem, new TypeReference<List<Map<String, String>>>() {});
+            redisUtils.set(Constants.Schedule.Daily_Problem.getCode(), list, 60 * 60 * 24);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 

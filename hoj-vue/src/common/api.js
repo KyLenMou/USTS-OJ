@@ -168,6 +168,10 @@ axios.interceptors.response.use(
 
 // 处理oj前台的请求
 const ojApi = {
+  getDailyProblem() {
+    return ajax('/api/get-daily-problem', 'get', {
+    })
+  },
   // 获取其他oj平台近期比赛
   getRecentOtherContest() {
     return ajax('/api/get-recent-other-contest', 'get', {

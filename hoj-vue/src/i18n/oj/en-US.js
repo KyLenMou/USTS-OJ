@@ -217,6 +217,7 @@ export const m = {
   // /views/oj/Home.vue
   Welcome_to: 'Welcome to ',
   Recent_7_Days_AC_Rank: 'Rank: Accepted In The Last Week',
+  Daily_Problem: 'Daily Problem',
   Other_OJ_Contest: 'Other Online Judge Contest',
   Start_Time: 'Start Time',
   Latest_Problem: 'Latest Problem',

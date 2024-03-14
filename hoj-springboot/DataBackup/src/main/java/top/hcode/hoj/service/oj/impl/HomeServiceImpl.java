@@ -42,6 +42,10 @@ public class HomeServiceImpl implements HomeService {
     public CommonResult<List<HashMap<String, Object>>> getRecentOtherContest() {
         return CommonResult.successResponse(homeManager.getRecentOtherContest());
     }
+    @Override
+    public CommonResult<List<HashMap<String, Object>>> getDailyProblem() {
+        return CommonResult.successResponse(homeManager.getDailyProblem());
+    }
 
     @Override
     public CommonResult<IPage<AnnouncementVO>> getCommonAnnouncement(Integer limit, Integer currentPage) {

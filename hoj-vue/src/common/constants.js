@@ -330,3 +330,9 @@ export function buildContestRankConcernedKey(contestID) {
   return `${STORAGE_KEY.CONTEST_RANK_CONCERNED}_${contestID}`
 }
 
+export const OTHER_OJ_LOGO = {
+  NowCoder: require('@/assets/NowCoder.png'),
+  Codeforces: require('@/assets/Codeforces.png'),
+  LeetCode: require('@/assets/LeetCode.png'),
+  AcWing: require('@/assets/AcWing.png'),
+}

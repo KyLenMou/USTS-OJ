@@ -125,6 +125,13 @@ public class HomeManager {
         return (ArrayList<HashMap<String, Object>>) redisUtils.get(redisKey);
     }
 
+    @Deprecated
+    public List<HashMap<String, Object>> getDailyProblem() {
+        String redisKey = Constants.Schedule.Daily_Problem.getCode();
+        // 从redis获取比赛列表
+        return (ArrayList<HashMap<String, Object>>) redisUtils.get(redisKey);
+    }
+
 
     /**
      * @MethodName getCommonAnnouncement

@@ -217,6 +217,7 @@ export const m = {
   // /views/oj/Home.vue
   Welcome_to: '欢迎使用 ',
   Recent_7_Days_AC_Rank: '最近一周过题榜单',
+  Daily_Problem: '每日一题',
   Other_OJ_Contest: '其它OJ的近期比赛',
   Start_Time: '开始时间',
   Latest_Problem: '最新题目',

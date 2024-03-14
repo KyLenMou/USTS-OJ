@@ -278,7 +278,8 @@ public class Constants {
     }
 
     public enum Schedule {
-        RECENT_OTHER_CONTEST("recent-other-contest");
+        RECENT_OTHER_CONTEST("recent-other-contest"),
+        Daily_Problem("daily-problem"),;
 
         private final String code;
 
@@ -288,7 +289,6 @@ public class Constants {
 
         public String getCode() {
             return code;
-
         }
     }
 

@@ -40,6 +40,60 @@
         </el-card>
         <Announcements class="card-top"></Announcements>
         <SubmissionStatistic class="card-top"></SubmissionStatistic>
+<!--        <el-card class="card-top">-->
+<!--          <div-->
+<!--              slot="header"-->
+<!--              class="clearfix"-->
+<!--          >-->
+<!--            <span class="panel-title home-title">-->
+<!--              <i class="el-icon-magic-stick"></i> {{-->
+<!--                $t('m.Latest_Problem')-->
+<!--              }}</span>-->
+<!--          </div>-->
+<!--          <vxe-table-->
+<!--              border="inner"-->
+<!--              highlight-hover-row-->
+<!--              stripe-->
+<!--              :loading="loading.recentUpdatedProblemsLoading"-->
+<!--              auto-resize-->
+<!--              :data="recentUpdatedProblems"-->
+<!--              @cell-click="goProblem"-->
+<!--          >-->
+<!--            <vxe-table-column-->
+<!--                field="problemId"-->
+<!--                :title="$t('m.Problem_ID')"-->
+<!--                min-width="100"-->
+<!--                show-overflow-->
+<!--                align="center"-->
+<!--            >-->
+<!--            </vxe-table-column>-->
+<!--            <vxe-table-column-->
+<!--                field="title"-->
+<!--                :title="$t('m.Title')"-->
+<!--                show-overflow-->
+<!--                min-width="130"-->
+<!--                align="center"-->
+<!--            >-->
+<!--            </vxe-table-column>-->
+<!--            <vxe-table-column-->
+<!--                field="gmtModified"-->
+<!--                :title="$t('m.Recent_Update')"-->
+<!--                show-overflow-->
+<!--                min-width="96"-->
+<!--                align="center"-->
+<!--            >-->
+<!--              <template v-slot="{ row }">-->
+<!--                <el-tooltip-->
+<!--                    :content="row.gmtModified | localtime"-->
+<!--                    placement="top"-->
+<!--                >-->
+<!--                  <span>{{ row.gmtModified | fromNow }}</span>-->
+<!--                </el-tooltip>-->
+<!--              </template>-->
+<!--            </vxe-table-column>-->
+
+<!--          </vxe-table>-->
+<!--        </el-card>-->
       </el-col>
       <el-col
         :md="9"
@@ -205,18 +259,21 @@
                 @cell-click="goOtherContest"
             >
               <vxe-table-column
-                  field="title"
                   :title="$t('m.Contests')"
                   min-width="100"
                   show-overflow
                   align="center"
               >
+                <template v-slot="{ row }">
+                  <img :src="OTHER_OJ_LOGO[row.oj]" alt="logo" style="width: 15px; object-fit: contain;"/>
+                  {{ row.title }}
+                </template>
               </vxe-table-column>
               <vxe-table-column
                   field="beginTime"
                   :title="$t('m.Start_Time')"
                   show-overflow
-                  min-width="96"
+                  max-width="60"
                   align="center"
               >
                 <template v-slot="{ row }">
@@ -298,60 +355,6 @@
         </el-card>
         <el-card class="card-top">
           <div
-              slot="header"
-              class="clearfix"
-          >
-            <span class="panel-title home-title">
-              <i class="el-icon-magic-stick"></i> {{
-                $t('m.Latest_Problem')
-              }}</span>
-          </div>
-          <vxe-table
-              border="inner"
-              highlight-hover-row
-              stripe
-              :loading="loading.recentUpdatedProblemsLoading"
-              auto-resize
-              :data="recentUpdatedProblems"
-              @cell-click="goProblem"
-          >
-            <vxe-table-column
-                field="problemId"
-                :title="$t('m.Problem_ID')"
-                min-width="100"
-                show-overflow
-                align="center"
-            >
-            </vxe-table-column>
-            <vxe-table-column
-                field="title"
-                :title="$t('m.Title')"
-                show-overflow
-                min-width="130"
-                align="center"
-            >
-            </vxe-table-column>
-            <vxe-table-column
-                field="gmtModified"
-                :title="$t('m.Recent_Update')"
-                show-overflow
-                min-width="96"
-                align="center"
-            >
-              <template v-slot="{ row }">
-                <el-tooltip
-                    :content="row.gmtModified | localtime"
-                    placement="top"
-                >
-                  <span>{{ row.gmtModified | fromNow }}</span>
-                </el-tooltip>
-              </template>
-            </vxe-table-column>
-
-          </vxe-table>
-        </el-card>
-        <el-card class="card-top">
-          <div
             slot="header"
             class="clearfix title"
           >
@@ -405,6 +408,7 @@ import api from "@/common/api";
 import {
   CONTEST_STATUS_REVERSE,
   CONTEST_TYPE_REVERSE,
+  OTHER_OJ_LOGO
 } from "@/common/constants";
 import { mapState, mapGetters } from "vuex";
 import Avatar from "vue-avatar";
@@ -426,10 +430,11 @@ export default {
       recentUserACRecord: [],
       CONTEST_STATUS_REVERSE: {},
       CONTEST_TYPE_REVERSE: {},
+      OTHER_OJ_LOGO: {},
       contests: [],
       loading: {
         recent7ACRankLoading: false,
-        recentUpdatedProblemsLoading: false,
+        // recentUpdatedProblemsLoading: false,
         recentContests: false,
         recentOtherContestLoading: false,
       },
@@ -492,6 +497,7 @@ export default {
     }
     this.CONTEST_STATUS_REVERSE = Object.assign({}, CONTEST_STATUS_REVERSE);
     this.CONTEST_TYPE_REVERSE = Object.assign({}, CONTEST_TYPE_REVERSE);
+    this.OTHER_OJ_LOGO = Object.assign({}, OTHER_OJ_LOGO);
     this.getRecentOtherContest();
     this.getHomeCarousel();
     this.getRecentContests();
@@ -524,18 +530,18 @@ export default {
         }
       );
     },
-    getRecentUpdatedProblemList() {
-      this.loading.recentUpdatedProblemsLoading = true;
-      api.getRecentUpdatedProblemList().then(
-        (res) => {
-          this.recentUpdatedProblems = res.data.data;
-          this.loading.recentUpdatedProblemsLoading = false;
-        },
-        (err) => {
-          this.loading.recentUpdatedProblemsLoading = false;
-        }
-      );
-    },
+    // getRecentUpdatedProblemList() {
+    //   this.loading.recentUpdatedProblemsLoading = true;
+    //   api.getRecentUpdatedProblemList().then(
+    //     (res) => {
+    //       this.recentUpdatedProblems = res.data.data;
+    //       this.loading.recentUpdatedProblemsLoading = false;
+    //     },
+    //     (err) => {
+    //       this.loading.recentUpdatedProblemsLoading = false;
+    //     }
+    //   );
+    // },
     getRecent7ACRank() {
       this.loading.recent7ACRankLoading = true;
       api.getRecent7ACRank().then(
