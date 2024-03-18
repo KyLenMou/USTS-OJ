@@ -8,8 +8,7 @@ export const LOGO =
 "                 Author: KyLen"+"\n"+
 "              Email: kkkylen@qq.com"+"\n"+
 "                 QQ: 2729269812"+"\n"+
-"    ->Github<- https://www.github.com/HimitZH/HOJ"+"\n"+
-"    ->Gitee<-  https://gitee.com/himitzh0730/hoj";
+"    Github: https://github.com/KyLenMou/USTS-OJ"+"\n"
 
 export const MOTTO = 
-"         Welcome to Use USTS-OJ, Dream in Code!";
+"              Welcome to Use USTS-OJ";
