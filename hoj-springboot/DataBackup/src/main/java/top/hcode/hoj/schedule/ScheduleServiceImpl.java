@@ -15,6 +15,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -48,7 +52,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 
@@ -114,6 +118,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Resource
     private ApplicationContext applicationContext;
+
+    @Resource
+    private OtherContestService otherContestService;
 
     /**
      * @MethodName deleteAvatar
@@ -186,75 +193,37 @@ public class ScheduleServiceImpl implements ScheduleService {
      * oj: "Codeforces",
      * title: "Codeforces Round #680 (Div. 1, based on VK Cup 2020-2021 - Final)",
      * beginTime: "2020-11-08T05:00:00Z",
-     * endTime: "2020-11-08T08:00:00Z",
+     * url: xxx
      */
     @Scheduled(cron = "0 0 0/2 * * *")
-    // @Scheduled(cron = "*/10 * * * * *")
-//    @Scheduled(cron = "0/5 * * * * *")
     @Override
     public void getOjContestsList() {
-        // 待格式化的API，需要填充年月查询
-        String nowcoderContestAPI = "https://ac.nowcoder.com/acm/calendar/contest?token=&month=%d-%d";
-        String cfContestAPI = "https://codeforces.com/api/contest.list?gym=false";
+        // 开线程池
+        ExecutorService executorService = Executors.newFixedThreadPool(7);
         // 将获取的比赛列表添加进这里
         List<Map<String, Object>> contestsList = new ArrayList<>();
-        // 获取当前年月
-        DateTime dateTime = DateUtil.date();
-        // offsetMonth 增加的月份，只枚举最近3个月的比赛
-        for (int offsetMonth = 0; offsetMonth <= 2; offsetMonth++) {
-            // 月份增加i个月
-            DateTime newDate = DateUtil.offsetMonth(dateTime, offsetMonth);
-            // 格式化API 月份从0-11，所以要加一
-            String contestAPI = String.format(nowcoderContestAPI, newDate.year(), newDate.month() + 1);
-            try {
-                // 连接api，获取json格式对象
-                JSONObject resultObject = JsoupUtils.getJsonFromConnection(JsoupUtils.getConnectionFromUrl(contestAPI, null, null));
-                // 比赛列表存放在data字段中
-                JSONArray contestsArray = resultObject.getJSONArray("data");
-                // 牛客比赛列表按时间顺序排序，所以从后向前取可以减少不必要的遍历
-                for (int i = contestsArray.size() - 1; i >= 0; i--) {
-                    JSONObject contest = contestsArray.getJSONObject(i);
-                    // 如果比赛已经结束了，则直接结束
-                    if (contest.getLong("endTime", 0L) < dateTime.getTime()) {
-                        break;
-                    }
-                    // 把比赛列表信息添加在List里
-                    contestsList.add(MapUtil.builder(new HashMap<String, Object>())
-                            .put("oj", contest.getStr("ojName"))
-                            .put("url", contest.getStr("link"))
-                            .put("title", contest.getStr("contestName"))
-                            .put("beginTime", new Date(contest.getLong("startTime")))
-                            .put("endTime", new Date(contest.getLong("endTime"))).map());
-                }
-            } catch (Exception e) {
-                log.error("爬虫爬取Nowcoder比赛异常----------------------->{}", e.getMessage());
-            }
-        }
-        // 定制的cf比赛查询接口,ip为172.20.0.9,路径为/getCodeforcesContestList
-        RestTemplate restTemplate = new RestTemplate();
-        // String otherContests = restTemplate.getForObject("http://localhost:6689/get-oj-contest-list", String.class);
-        String otherContests = restTemplate.getForObject("http://172.20.0.9:6689/get-oj-contest-list", String.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-
+        // 获取其他OJ的比赛列表
+        List<Callable<List<Map<String, Object>>>> callableList = new ArrayList<>();
+        callableList.add(otherContestService.getNowcoderContestsList());
+        callableList.add(otherContestService.getLuoguContestsList());
+        callableList.add(otherContestService.getCodeforcesContestsList());
+        callableList.add(otherContestService.getAcWingContestsList());
+        callableList.add(otherContestService.getAtCoderContestsList());
+        callableList.add(otherContestService.getLeetCodeContestsList());
         try {
-            List<Map<String, Object>> tempList = objectMapper.readValue(otherContests, new TypeReference<List<Map<String, Object>>>() {
-            });
-            for (Map<String, Object> map : tempList) {
-                map.put("beginTime", Date.from(LocalDateTime.parse((String) map.get("beginTime"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).atZone(ZoneId.systemDefault()).toInstant()));
-                map.put("endTime", Date.from(LocalDateTime.parse((String) map.get("endTime"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).atZone(ZoneId.systemDefault()).toInstant()));
+            List<Future<List<Map<String, Object>>>> futures = executorService.invokeAll(callableList);
+            for (Future<List<Map<String, Object>>> future : futures) {
+                contestsList.addAll(future.get());
             }
-            contestsList.addAll(tempList);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("获取其他OJ的比赛列表失败！----------------------->{}", e.getMessage());
+        } finally {
+            executorService.shutdown();
         }
-
-
         // 把比赛列表按照开始时间排序，方便查看
         contestsList.sort((o1, o2) -> {
-
             long beginTime1 = ((Date) o1.get("beginTime")).getTime();
             long beginTime2 = ((Date) o2.get("beginTime")).getTime();
-
             return Long.compare(beginTime1, beginTime2);
         });
 
@@ -262,22 +231,45 @@ public class ScheduleServiceImpl implements ScheduleService {
         String redisKey = Constants.Schedule.RECENT_OTHER_CONTEST.getCode();
         // 缓存时间一天
         redisUtils.set(redisKey, contestsList, 60 * 60 * 24);
-        // 增加log提示
-        log.info("获取牛客API的比赛列表成功！共获取数据" + contestsList.size() + "条");
-
-        // 获取力扣每日一题(为了方便直接写在这个方法里了,后续如果有更多接口建议新写个方法)
-        // String dailyProblem = restTemplate.getForObject("http://localhost:6689/get-daily-problem", String.class);
-        String dailyProblem = restTemplate.getForObject("http://172.20.0.9:6689/get-oj-contest-list", String.class);
-        objectMapper = new ObjectMapper();
-        try {
-            // Parse the JSON string into a list of maps
-            List<Map<String, String>> list = objectMapper.readValue(dailyProblem, new TypeReference<List<Map<String, String>>>() {});
-            redisUtils.set(Constants.Schedule.Daily_Problem.getCode(), list, 60 * 60 * 24);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
+    /**
+     * @author: KyLen
+     * @date: 2024/4/16 下午12:47
+     * @param: []
+     * @description: 每天零点零一分获取力扣每日一题
+     **/
+    @Scheduled(cron = "0 1 0 * * *")
+    public void getLeetCodeDailyProblem() {
+        // Create a RestTemplate object
+        RestTemplate restTemplate = new RestTemplate();
 
+        // Set request headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Set request body
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("query", "\n query CalendarTaskSchedule($days: Int!) {\n calendarTaskSchedule(days: $days) {\n contests {\n id\n name\n slug\n progress\n link\n premiumOnly\n }\n dailyQuestions {\n id\n name\n slug\n progress\n link\n premiumOnly\n }\n studyPlans {\n id\n name\n slug\n progress\n link\n premiumOnly\n }\n }\n}\n ");
+        requestBody.put("variables", new HashMap<String, Object>() {{
+            put("days", 0);
+        }});
+        requestBody.put("operationName", "CalendarTaskSchedule");
+
+        // Send HTTP POST request and get response
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity("https://leetcode.cn/graphql", requestEntity, String.class);
+
+        // Parse JSON data
+        JSONObject json = new JSONObject(response.getBody());
+        String link = json.getJSONObject("data").getJSONObject("calendarTaskSchedule").getJSONArray("dailyQuestions").getJSONObject(0).getStr("link");
+
+        Map<String, String> dailyQuestionMap = new HashMap<>();
+        dailyQuestionMap.put("oj", "LeetCode");
+        dailyQuestionMap.put("url", link);
+        List<Map<String,String>> list = new ArrayList<>();
+        list.add(dailyQuestionMap);
+        redisUtils.set(Constants.Schedule.Daily_Problem.getCode(), list, 60 * 60 * 24);
+    }
 
     /**
      * 每天3点获取codeforces的rating分数

@@ -335,4 +335,6 @@ export const OTHER_OJ_LOGO = {
   Codeforces: require('@/assets/Codeforces.png'),
   LeetCode: require('@/assets/LeetCode.png'),
   AcWing: require('@/assets/AcWing.png'),
+  LuoGu: require('@/assets/LuoGu.png'),
+  AtCoder: require('@/assets/AtCoder.png'),
 }

@@ -9,6 +9,8 @@ public interface ScheduleService {
 
     void getOjContestsList();
 
+    void getLeetCodeDailyProblem();
+
     void getCodeforcesRating();
 
     void deleteUserSession();
