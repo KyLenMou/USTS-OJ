@@ -151,6 +151,9 @@
           <el-form-item :label="$t('m.CF_Username')">
             <el-input v-model="formProfile.cfUsername" :maxlength="50" />
           </el-form-item>
+          <el-form-item :label="$t('m.Nowcoder_Id')">
+            <el-input v-model="formProfile.nowcoderId" :maxlength="50" />
+          </el-form-item>
           <el-form-item :label="$t('m.Blog')">
             <el-input v-model="formProfile.blog" :maxlength="255" />
           </el-form-item>
@@ -226,6 +229,7 @@ export default {
         realname: '',
         username: '',
         cfUsername: '',
+        nowcoderId: '',
         gender: '',
         nickname: '',
         signature: '',

@@ -112,7 +112,7 @@
           <el-card :body-style="{padding:0}">
             <el-row style="margin: 20px 20px 0 20px">
               <el-col :span="24">
-                <!--四个方块-->
+                <!--五个矩形-->
                 <el-card shadow="always" class="submission">
                   <div style="display: flex; align-items: center;">
                   <span>
@@ -148,6 +148,17 @@
                   </span>
                     <span class="data-number">
                   {{ profile.rating ? profile.rating : '--' }}
+                </span>
+                  </div>
+                </el-card>
+                <el-card shadow="always" class="nowcoder_rating">
+                  <div style="display: flex; align-items: center;">
+                  <span>
+                    <i class="fa fa-user-secret" aria-hidden="true"></i>
+                    {{ $t('m.UserHome_Nowcoder_Rating') }}
+                  </span>
+                    <span class="data-number">
+                  {{ profile.nowcoderRating ? profile.nowcoderRating : '--' }}
                 </span>
                   </div>
                 </el-card>
@@ -875,6 +886,17 @@
                   </span>
                     <span class="data-number">
                   {{ profile.rating ? profile.rating : '--' }}
+                </span>
+                  </div>
+                </el-card>
+                <el-card shadow="always" class="nowcoder_rating">
+                  <div style="display: flex; align-items: center;">
+                  <span>
+                    <i class="fa fa-user-secret" aria-hidden="true"></i>
+                    {{ $t('m.UserHome_Nowcoder_Rating') }}
+                  </span>
+                    <span class="data-number">
+                  {{ profile.nowcoderRating ? profile.nowcoderRating : '--' }}
                 </span>
                   </div>
                 </el-card>
@@ -1606,6 +1628,8 @@ export default {
         signature: '',
         total: 0,
         rating: 0,
+        // 牛客分数
+        nowcoderRating: 0,
         score: 0,
         solvedList: [],
         scoreList: [],
@@ -1776,6 +1800,13 @@ export default {
   font-size: 14px;
 }
 
+.nowcoder_rating {
+  margin-top: 10px;
+  background: #409EFF;
+  color: #fff;
+  font-size: 14px;
+}
+
 .default-info {
   font-size: 13px;
   padding-right: 5px;
@@ -1910,8 +1941,9 @@ export default {
 }
 
 .signature-body {
+  max-height: 200px; /* 你可以根据需要调整这个值 */
+  overflow-y: auto;
   background: #fff;
-  overflow: hidden;
   width: 100%;
   padding: 10px 10px;
   text-align: left;
