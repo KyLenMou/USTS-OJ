@@ -38,7 +38,7 @@ import java.util.concurrent.Callable;
 public class OtherContestServiceImpl implements OtherContestService {
     private static final String nowcoderContestAPI = "https://ac.nowcoder.com/acm/calendar/contest?token=&month=%d-%d";
     private static final String luoGuContestAPI = "https://www.luogu.com.cn/contest/list?page=1&_contentOnly=1";
-    private static final String codeForcesContestAPI = "https://codeforces.com/api/contest.list?gym=false";
+    private static final String codeForcesContestAPI = "https://mirror.codeforces.com/api/contest.list?gym=false";
     private static final String acWingContestAPI = "https://www.acwing.com/activity/1/competition";
     private static final String atCoderContestAPI = "https://atcoder.jp/contests";
     private static final String leetCodeContestAPI = "https://leetcode.cn/graphql";

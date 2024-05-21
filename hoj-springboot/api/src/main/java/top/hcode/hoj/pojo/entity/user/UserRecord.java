@@ -36,6 +36,10 @@ public class UserRecord implements Serializable {
     @TableField("rating")
     private Integer rating;
 
+    @ApiModelProperty(value = "cf得分")
+    @TableField("nowcoder_rating")
+    private Integer nowcoderRating;
+
     @TableField(fill = FieldFill.INSERT)
     private Date gmtCreate;
 

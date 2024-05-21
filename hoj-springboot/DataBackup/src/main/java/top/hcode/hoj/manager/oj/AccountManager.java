@@ -990,6 +990,7 @@ public class AccountManager {
         commonValidator.validateContentLength(userInfoVo.getSchool(), "学校", 100);
         commonValidator.validateContentLength(userInfoVo.getNumber(), "学号", 200);
         commonValidator.validateContentLength(userInfoVo.getCfUsername(), "Codeforces用户名", 255);
+        commonValidator.validateContentLength(userInfoVo.getNowcoderId(), "nowcoder的Id", 255);
 
         // 获取当前登录的用户
         AccountProfile userRolesVo = (AccountProfile) SecurityUtils.getSubject().getPrincipal();
@@ -997,6 +998,7 @@ public class AccountManager {
         UpdateWrapper<UserInfo> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("uuid", userRolesVo.getUid())
                 .set("cf_username", userInfoVo.getCfUsername())
+                .set("nowcoder_id", userInfoVo.getNowcoderId())
                 .set("realname", userInfoVo.getRealname())
                 .set("nickname", userInfoVo.getNickname())
                 .set("signature", userInfoVo.getSignature())

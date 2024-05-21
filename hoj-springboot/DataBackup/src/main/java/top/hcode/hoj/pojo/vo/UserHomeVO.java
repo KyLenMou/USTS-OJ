@@ -56,6 +56,9 @@ public class UserHomeVO {
     @ApiModelProperty(value = "cf得分")
     private Integer rating;
 
+    @ApiModelProperty(value = "nowcoder得分")
+    private Integer nowcoderRating;
+
     @ApiModelProperty(value = "OI得分列表")
     private List<Integer> scoreList;
 

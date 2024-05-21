@@ -64,6 +64,10 @@ public class UserInfo implements Serializable {
     private String cfUsername;
 
     @TableField(updateStrategy = FieldStrategy.IGNORED)
+    @ApiModelProperty(value = "nowCoder的id")
+    private String nowcoderId;
+
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     @ApiModelProperty(value = "github地址")
     private String github;
 

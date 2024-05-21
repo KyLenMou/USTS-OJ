@@ -50,6 +50,9 @@ public class UserRolesVO implements Serializable {
     @ApiModelProperty(value = "cf的username")
     private String cfUsername;
 
+    @ApiModelProperty(value = "nowcoder的id")
+    private String nowcoderId;
+
     @ApiModelProperty(value = "github地址")
     private String github;
 

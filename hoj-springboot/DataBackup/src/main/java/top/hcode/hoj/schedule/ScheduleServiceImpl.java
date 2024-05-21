@@ -3,16 +3,14 @@ package top.hcode.hoj.schedule;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateFormatUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpEntity;
@@ -48,9 +46,6 @@ import top.hcode.hoj.utils.JsoupUtils;
 import top.hcode.hoj.utils.RedisUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -272,13 +267,56 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     /**
-     * 每天3点获取codeforces的rating分数
+     * 每一个小时获取nowcoder的分数
      */
-    @Scheduled(cron = "0 0 3 * * *")
-//    @Scheduled(cron = "0/5 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
+    @Override
+    public void getNowcoderRating() {
+        String nowcoderAPI = "https://ac.nowcoder.com/acm/contest/profile/";
+        QueryWrapper<UserInfo> userInfoQueryWrapper = new QueryWrapper<>();
+        // 查询nowcoder_id不为空的数据
+        userInfoQueryWrapper.isNotNull("nowcoder_id");
+        List<UserInfo> userInfoList = userInfoEntityService.list(userInfoQueryWrapper);
+        for (UserInfo userInfo : userInfoList) {
+            // 获取牛客id
+            String nowcoderId = userInfo.getNowcoderId();
+            // 获取uuid
+            String uuid = userInfo.getUuid();
+            // 格式化api
+            String ratingAPI = nowcoderAPI + nowcoderId;
+            try {
+                Document doc = Jsoup.connect(ratingAPI).get();
+                Elements elements = doc.select("div.state-num.rate-score2");
+                if (!elements.isEmpty()) {
+                    String ratingStr = elements.first().text();
+                    Integer rating = Integer.parseInt(ratingStr);
+
+                    // 更新数据库
+                    UpdateWrapper<UserRecord> userRecordUpdateWrapper = new UpdateWrapper<>();
+                    userRecordUpdateWrapper.eq("uid", uuid).set("nowcoder_rating", rating);
+                    boolean result = userRecordEntityService.update(userRecordUpdateWrapper);
+                    if (!result) {
+                        log.error("(nowcoder)更新UserRecord表失败");
+                    }
+                }
+            } catch (Exception e) {
+                log.error("获取用户\"" + userInfo.getUsername() + "\"(uuid:" + uuid + ")nowcoder分数异常----------------------->{}", e.getMessage());
+            }
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        log.info("获取Nowcoder Rating成功！");
+    }
+    /**
+     * 每小时获取cf的rating分数
+     */
+    @Scheduled(cron = "0 0 * * * *")
     @Override
     public void getCodeforcesRating() {
-        String codeforcesUserInfoAPI = "https://codeforces.com/api/user.info?handles=%s";
+        String codeforcesUserInfoAPI = "https://mirror.codeforces.com/api/user.info?handles=%s";
         QueryWrapper<UserInfo> userInfoQueryWrapper = new QueryWrapper<>();
         // 查询cf_username不为空的数据
         userInfoQueryWrapper.isNotNull("cf_username");

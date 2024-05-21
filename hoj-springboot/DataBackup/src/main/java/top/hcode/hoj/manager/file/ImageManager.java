@@ -116,6 +116,7 @@ public class ImageManager {
                 .put("github", userRolesVo.getGithub())
                 .put("blog", userRolesVo.getBlog())
                 .put("cfUsername", userRolesVo.getCfUsername())
+                .put("nowcoderId", userRolesVo.getNowcoderId())
                 .put("roleList", userRolesVo.getRoles().stream().map(Role::getRole))
                 .map();
     }

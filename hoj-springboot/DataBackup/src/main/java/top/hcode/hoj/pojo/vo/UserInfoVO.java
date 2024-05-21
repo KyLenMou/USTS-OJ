@@ -61,6 +61,9 @@ public class UserInfoVO {
     @ApiModelProperty(value = "cf的username")
     private String cfUsername;
 
+    @ApiModelProperty(value = "牛客id")
+    private String nowcoderId;
+
     @ApiModelProperty(value = "角色列表")
     private List<String> roleList;
 

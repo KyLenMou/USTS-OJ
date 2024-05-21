@@ -13,6 +13,8 @@ public interface ScheduleService {
 
     void getCodeforcesRating();
 
+    void getNowcoderRating();
+
     void deleteUserSession();
 
     void syncNoticeToRecentHalfYearUser();
