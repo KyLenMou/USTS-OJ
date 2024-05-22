@@ -146,9 +146,9 @@
                     <i class="fa fa-user-secret" aria-hidden="true"></i>
                     {{ $t('m.UserHome_Rating') }}
                   </span>
-                    <span class="data-number">
-                  {{ profile.rating ? profile.rating : '--' }}
-                </span>
+                  <span class="data-number" style="cursor: pointer;" @click="openRatingProfile">
+                    {{ profile.rating ? profile.rating : '--' }}
+                  </span>
                   </div>
                 </el-card>
                 <el-card shadow="always" class="nowcoder_rating">
@@ -157,9 +157,9 @@
                     <i class="fa fa-user-secret" aria-hidden="true"></i>
                     {{ $t('m.UserHome_Nowcoder_Rating') }}
                   </span>
-                    <span class="data-number">
-                  {{ profile.nowcoderRating ? profile.nowcoderRating : '--' }}
-                </span>
+                    <span class="data-number" style="cursor: pointer;" @click="openNowcoderProfile">
+                    {{ profile.nowcoderRating ? profile.nowcoderRating : '--' }}
+                  </span>
                   </div>
                 </el-card>
               </el-col>
@@ -884,9 +884,9 @@
                     <i class="fa fa-user-secret" aria-hidden="true"></i>
                     {{ $t('m.UserHome_Rating') }}
                   </span>
-                    <span class="data-number">
-                  {{ profile.rating ? profile.rating : '--' }}
-                </span>
+                    <span class="data-number" style="cursor: pointer;" @click="openRatingProfile">
+                    {{ profile.rating ? profile.rating : '--' }}
+                  </span>
                   </div>
                 </el-card>
                 <el-card shadow="always" class="nowcoder_rating">
@@ -895,9 +895,9 @@
                     <i class="fa fa-user-secret" aria-hidden="true"></i>
                     {{ $t('m.UserHome_Nowcoder_Rating') }}
                   </span>
-                    <span class="data-number">
-                  {{ profile.nowcoderRating ? profile.nowcoderRating : '--' }}
-                </span>
+                  <span class="data-number" style="cursor: pointer;" @click="openNowcoderProfile">
+                    {{ profile.nowcoderRating ? profile.nowcoderRating : '--' }}
+                  </span>
                   </div>
                 </el-card>
               </el-col>
@@ -1094,6 +1094,13 @@ export default {
     window.removeEventListener('resize', this.checkScreenWidth);
   },
   methods: {
+    openRatingProfile() {
+      // 这里替换为你需要打开的 URL
+      window.open('https://mirror.codeforces.com/profile/' + this.profile.cfUsername, '_blank');
+    },
+    openNowcoderProfile() {
+      window.open('https://ac.nowcoder.com/acm/contest/profile/' + this.profile.nowcoderId, '_blank');
+    },
     // 页面宽度
     checkScreenWidth() {
       this.isWideScreen = window.innerWidth >= 1050;
@@ -1628,6 +1635,10 @@ export default {
         signature: '',
         total: 0,
         rating: 0,
+        // cf用户名
+        cfUsername: '',
+        // 牛客id
+        nowcoderId: '',
         // 牛客分数
         nowcoderRating: 0,
         score: 0,
@@ -1805,6 +1816,7 @@ export default {
   background: #409EFF;
   color: #fff;
   font-size: 14px;
+
 }
 
 .default-info {

@@ -75,6 +75,8 @@
         <result column="avatar" property="avatar"></result>
         <result column="title_name" property="titleName"></result>
         <result column="title_color" property="titleColor"></result>
+        <result column="cf_username" property="cfUsername"></result>
+        <result column="nowcoder_id" property="nowcoderId"></result>
         <result column="rating" property="rating"></result>
         <result column="nowcoder_rating" property="nowcoderRating"></result>
         <result column="total" property="total"></result>
@@ -84,7 +86,7 @@
 
     <select id="getUserHomeInfo" resultMap="map_UserHomeVo">
         SELECT u.uuid as uid,u.username,u.nickname,u.gender,u.signature,u.school,u.github,u.blog,
-        u.avatar,u.title_name,u.title_color,ur.rating,ur.nowcoder_rating,
+        u.avatar,u.title_name,u.title_color,u.cf_username,u.nowcoder_id,ur.rating,ur.nowcoder_rating,
         (SELECT COUNT(uid) FROM judge WHERE uid=u.uuid AND cid=0 AND gid is null) AS total
         FROM user_info u,user_record ur
         <where>

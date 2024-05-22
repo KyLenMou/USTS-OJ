@@ -7,6 +7,7 @@
         <result column="gid" property="gid"></result>
         <result column="uid" property="uid"></result>
         <result column="username" property="username"></result>
+        <result column="realname" property="realname"></result>
         <result column="auth" property="auth"></result>
         <result column="reason" property="reason"></result>
         <result column="gmt_create" property="gmtCreate"></result>
@@ -14,7 +15,7 @@
     </resultMap>
 
     <select id="getMemberList" resultMap="map_MemberList">
-        SELECT gm.id, gm.gid, gm.uid, gm.auth, gm.gmt_create, gm.gmt_modified, ui.username
+        SELECT gm.id, gm.gid, gm.uid, gm.auth, gm.gmt_create, gm.gmt_modified, ui.username, ui.realname
         FROM group_member gm, user_info ui
         <where>
             gm.gid = #{gid} and gm.uid = ui.uuid and (gm.auth = 3 or gm.auth = 4 or gm.auth = 5)

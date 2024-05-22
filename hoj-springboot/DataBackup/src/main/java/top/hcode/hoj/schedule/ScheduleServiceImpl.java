@@ -267,8 +267,9 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     /**
-     * 每一个小时获取nowcoder的分数
+     * 每隔一个小时获取nowcoder的rating分数
      */
+    // @Scheduled(cron = "0 0 3 * * *")
     @Scheduled(cron = "0 0 * * * *")
     @Override
     public void getNowcoderRating() {
@@ -280,39 +281,42 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (UserInfo userInfo : userInfoList) {
             // 获取牛客id
             String nowcoderId = userInfo.getNowcoderId();
+            log.info("正在获取用户 {}({}:{})的nowcoder分数",userInfo.getUsername(),userInfo.getRealname(),nowcoderId);
             // 获取uuid
             String uuid = userInfo.getUuid();
             // 格式化api
             String ratingAPI = nowcoderAPI + nowcoderId;
+            Integer tempRating = -1;
             try {
                 Document doc = Jsoup.connect(ratingAPI).get();
-                Elements elements = doc.select("div.state-num.rate-score2");
+                Elements elements = doc.select("div[class^=state-num rate-score]");
                 if (!elements.isEmpty()) {
                     String ratingStr = elements.first().text();
                     Integer rating = Integer.parseInt(ratingStr);
-
+                    tempRating = rating;
                     // 更新数据库
                     UpdateWrapper<UserRecord> userRecordUpdateWrapper = new UpdateWrapper<>();
                     userRecordUpdateWrapper.eq("uid", uuid).set("nowcoder_rating", rating);
                     boolean result = userRecordEntityService.update(userRecordUpdateWrapper);
+                    log.info("获取用户 {}({}:{})的nowcoder分数成功----------->{}",userInfo.getUsername(),userInfo.getRealname(),nowcoderId,tempRating);
                     if (!result) {
                         log.error("(nowcoder)更新UserRecord表失败");
                     }
                 }
             } catch (Exception e) {
-                log.error("获取用户\"" + userInfo.getUsername() + "\"(uuid:" + uuid + ")nowcoder分数异常----------------------->{}", e.getMessage());
+                log.error("获取用户 {}({}:{})的nowcoder分数异常----------------------->{}",userInfo.getUsername(),userInfo.getRealname(),nowcoderId,e.getMessage());
             }
             try {
-                TimeUnit.SECONDS.sleep(2);
+                TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        log.info("获取Nowcoder Rating成功！");
     }
     /**
-     * 每小时获取cf的rating分数
+     * 每隔一个小时获取cf的rating分数
      */
+    // @Scheduled(cron = "0 0 3 * * *")
     @Scheduled(cron = "0 0 * * * *")
     @Override
     public void getCodeforcesRating() {
@@ -324,14 +328,22 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (UserInfo userInfo : userInfoList) {
             // 获取cf名字
             String cfUsername = userInfo.getCfUsername();
+            log.info("正在获取用户 {}({}:{})的cf分数",userInfo.getUsername(),userInfo.getRealname(),cfUsername);
             // 获取uuid
             String uuid = userInfo.getUuid();
             // 格式化api
             String ratingAPI = String.format(codeforcesUserInfoAPI, cfUsername);
+            Integer tempRating = -1;
             try {
                 // 连接api，获取json格式对象
-                ScheduleServiceImpl service = applicationContext.getBean(ScheduleServiceImpl.class);
-                JSONObject resultObject = service.getCFUserInfo(ratingAPI);
+                // ScheduleServiceImpl service = applicationContext.getBean(ScheduleServiceImpl.class);
+                // JSONObject resultObject = service.getCFUserInfo(ratingAPI);
+
+                // 使用restTemplate
+                RestTemplate restTemplate = new RestTemplate();
+                ResponseEntity<String> response = restTemplate.getForEntity(ratingAPI, String.class);
+                JSONObject resultObject = new JSONObject(response.getBody());
+
                 // 获取状态码
                 String status = resultObject.getStr("status");
                 // 如果查无此用户，则跳过
@@ -342,24 +354,25 @@ public class ScheduleServiceImpl implements ScheduleService {
                 JSONObject cfUserInfo = resultObject.getJSONArray("result").getJSONObject(0);
                 // 获取cf的分数
                 Integer cfRating = cfUserInfo.getInt("rating", null);
+                tempRating = cfRating;
                 UpdateWrapper<UserRecord> userRecordUpdateWrapper = new UpdateWrapper<>();
                 // 将对应的cf分数修改
                 userRecordUpdateWrapper.eq("uid", uuid).set("rating", cfRating);
                 boolean result = userRecordEntityService.update(userRecordUpdateWrapper);
+                log.info("获取用户 {}({}:{})的cf分数成功----------->{}",userInfo.getUsername(),userInfo.getRealname(),cfUsername,tempRating);
                 if (!result) {
                     log.error("插入UserRecord表失败------------------------------->");
                 }
 
             } catch (Exception e) {
-                log.error("爬虫爬取Codeforces Rating分数异常----------------------->{}", e.getMessage());
+                log.error("获取用户 {}({}:{})的cf分数异常----------------------->{}",userInfo.getUsername(),userInfo.getRealname(),cfUsername,e.getMessage());
             }
             try {
-                TimeUnit.SECONDS.sleep(2);
+                TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        log.info("获取Codeforces Rating成功！");
     }
 
     @Retryable(value = Exception.class,

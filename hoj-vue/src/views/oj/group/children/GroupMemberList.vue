@@ -32,14 +32,29 @@
           :title="$t('m.Username')"
         >
           <template v-slot="{ row }"
-            ><el-link
-              type="primary"
-              @click="goUserHome(row.username)"
-              style="font-size: 13px;"
-              >{{ row.username }}</el-link
-            >
+          ><el-link
+            type="primary"
+            @click="goUserHome(row.username)"
+            style="font-size: 13px;"
+          >{{ row.username }}</el-link
+          >
           </template>
         </vxe-table-column>
+        <vxe-table-column
+        min-width="150"
+        field="realname"
+        show-overflow
+        :title="$t('m.RealName')"
+      >
+        <template v-slot="{ row }"
+        ><el-link
+          type="primary"
+          @click="goUserHome(row.username)"
+          style="font-size: 13px;"
+        >{{ row.realname }}</el-link
+        >
+        </template>
+      </vxe-table-column>
         <vxe-table-column
           min-width="150"
           field="gmtCreate"
