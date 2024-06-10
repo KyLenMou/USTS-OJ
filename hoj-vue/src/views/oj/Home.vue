@@ -239,7 +239,7 @@
             </el-card>
           </el-card>
         </template>
-        <template v-if="recentOtherContest.length">
+        <template v-if="recentOtherContest">
           <el-card style="margin-bottom: 20px" :body-style="{'padding-top': 0}">
             <div
                 slot="header"
@@ -498,16 +498,21 @@ export default {
     this.CONTEST_STATUS_REVERSE = Object.assign({}, CONTEST_STATUS_REVERSE);
     this.CONTEST_TYPE_REVERSE = Object.assign({}, CONTEST_TYPE_REVERSE);
     this.OTHER_OJ_LOGO = Object.assign({}, OTHER_OJ_LOGO);
-    this.getRecentOtherContest();
     this.getHomeCarousel();
     this.getRecentContests();
     this.getRecent7ACRank();
-    this.getRecentUpdatedProblemList();
+    this.getRecentOtherContest();
+    // this.getRecentUpdatedProblemList();
   },
   methods: {
     getRecentOtherContest() {
+      this.loading.recentOtherContestLoading = true;
       api.getRecentOtherContest().then((res) => {
         this.recentOtherContest = res.data.data;
+        this.loading.recentOtherContestLoading = false;
+      },
+      (err) => {
+        this.loading.recentOtherContestLoading = false;
       });
     },
     getHomeCarousel() {
