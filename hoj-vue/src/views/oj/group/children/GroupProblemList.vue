@@ -21,7 +21,7 @@
             @click="handleEditPage"
             icon="el-icon-back"
             >{{ $t('m.Back_To_Admin_Problem_List') }}</el-button
-          >`
+          >
           <el-button
             :type="adminPage ? 'danger' : 'success'"
             size="small"
