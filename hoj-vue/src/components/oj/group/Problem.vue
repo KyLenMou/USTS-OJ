@@ -3,7 +3,18 @@
     <el-col :span="24">
       <el-card shadow="never">
         <div slot="header">
-          <span class="panel-title home-title">{{ title }}</span>
+          <el-col :span="22">
+            <span class="panel-title home-title">{{ title }}</span>
+          </el-col>
+          <el-col :span="2">
+            <el-button
+              type="primary"
+              @click.native="submit()"
+              size="small"
+            >{{
+                $t('m.Save')
+             }}</el-button>
+          </el-col>
         </div>
         <el-form
           ref="form"
@@ -12,7 +23,7 @@
           label-position="top"
         >
           <el-row :gutter="20">
-            <el-col :span="24">
+            <el-col :span="6">
               <el-form-item
                 prop="problemId"
                 :label="$t('m.Problem_Display_ID')"
@@ -29,9 +40,7 @@
                 </el-input>
               </el-form-item>
             </el-col>
-          </el-row>
-          <el-row :gutter="20">
-            <el-col :span="24">
+            <el-col :span="10">
               <el-form-item
                 prop="title"
                 :label="$t('m.Title')"
@@ -41,6 +50,38 @@
                   :placeholder="$t('m.Title')"
                   v-model="problem.title"
                 ></el-input>
+              </el-form-item>
+            </el-col>
+
+            <el-col :span="4">
+              <el-form-item
+                :label="$t('m.Level')"
+                required
+              >
+                <el-select
+                  class="difficulty-select"
+                  placeholder="Enter the level of problem"
+                  v-model="problem.difficulty"
+                >
+                  <el-option
+                    :label="getLevelName(key)"
+                    :value="parseInt(key)"
+                    v-for="(value, key, index) in PROBLEM_LEVEL"
+                    :key="index"
+                  ></el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="4">
+              <el-form-item :label="$t('m.Type')">
+                <el-radio-group
+                  v-model="problem.type"
+                  :disabled="disableRuleType || problem.isRemote"
+                  @change="problemTypeChange"
+                >
+                  <el-radio :label="0">ACM</el-radio>
+                  <el-radio :label="1">OI</el-radio>
+                </el-radio-group>
               </el-form-item>
             </el-col>
           </el-row>
@@ -78,125 +119,13 @@
             </el-col>
           </el-row>
           <el-row :gutter="20">
-            <el-col :span="24">
-              <el-form-item
-                prop="description"
-                :label="$t('m.Description')"
-                required
-              >
-                <Editor :value.sync="problem.description"></Editor>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20">
             <el-col
-              :md="6"
-              :xs="24"
-            >
-              <el-form-item
-                :label="$t('m.Time_Limit') + '(ms)'"
-                required
-              >
-                <el-input
-                  type="Number"
-                  :placeholder="$t('m.Time_Limit')"
-                  v-model="problem.timeLimit"
-                  :disabled="problem.isRemote"
-                ></el-input>
-              </el-form-item>
-            </el-col>
-            <el-col
-              :md="6"
-              :xs="24"
-            >
-              <el-form-item
-                :label="$t('m.Memory_Limit') + '(mb)'"
-                required
-              >
-                <el-input
-                  type="Number"
-                  :placeholder="$t('m.Memory_Limit')"
-                  v-model="problem.memoryLimit"
-                  :disabled="problem.isRemote"
-                ></el-input>
-              </el-form-item>
-            </el-col>
-            <el-col
-              :md="6"
-              :xs="24"
-            >
-              <el-form-item
-                :label="$t('m.Stack_Limit') + '(mb)'"
-                required
-              >
-                <el-input
-                  type="Number"
-                  :placeholder="$t('m.Stack_Limit')"
-                  v-model="problem.stackLimit"
-                  :disabled="problem.isRemote"
-                ></el-input>
-              </el-form-item>
-            </el-col>
-            <el-col
-              :md="6"
-              :xs="24"
-            >
-              <el-form-item
-                :label="$t('m.Level')"
-                required
-              >
-                <el-select
-                  class="difficulty-select"
-                  placeholder="Enter the level of problem"
-                  v-model="problem.difficulty"
-                >
-                  <el-option
-                    :label="getLevelName(key)"
-                    :value="parseInt(key)"
-                    v-for="(value, key, index) in PROBLEM_LEVEL"
-                    :key="index"
-                  ></el-option>
-                </el-select>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20">
-            <el-col :span="24">
-              <el-form-item
-                prop="input_description"
-                :label="$t('m.Input')"
-                required
-              >
-                <Editor :value.sync="problem.input"></Editor>
-              </el-form-item>
-            </el-col>
-            <el-col :span="24">
-              <el-form-item
-                prop="output_description"
-                :label="$t('m.Output')"
-                required
-              >
-                <Editor :value.sync="problem.output"></Editor>
-              </el-form-item>
-            </el-col>
-            <el-col :span="24">
-              <el-form-item
-                style="margin-top: 20px"
-                :label="$t('m.Hint')"
-              >
-                <Editor :value.sync="problem.hint"></Editor>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="20">
-            <el-col
-              :md="4"
+              :md="3"
               :xs="24"
             >
               <el-form-item :label="$t('m.Auth')">
                 <el-select
                   v-model="problem.auth"
-                  size="small"
                 >
                   <el-option
                     :label="$t('m.Public_Problem')"
@@ -214,35 +143,68 @@
               </el-form-item>
             </el-col>
             <el-col
-              :md="4"
+              :md="3"
               :xs="24"
             >
-              <el-form-item :label="$t('m.Type')">
-                <el-radio-group
-                  v-model="problem.type"
-                  :disabled="disableRuleType || problem.isRemote"
-                  @change="problemTypeChange"
-                >
-                  <el-radio :label="0">ACM</el-radio>
-                  <el-radio :label="1">OI</el-radio>
-                </el-radio-group>
-              </el-form-item>
+              <el-form>
+                <el-form-item :label="$t('m.Source')">
+                  <el-input
+                    :placeholder="$t('m.Source')"
+                    v-model="problem.source"
+                  ></el-input>
+                </el-form-item>
+              </el-form>
             </el-col>
             <el-col
-              :md="4"
-              :xs="24"
-            >
-              <el-form-item :label="$t('m.Code_Shareable')">
-                <el-switch
-                  v-model="problem.codeShare"
-                  active-text=""
-                  inactive-text=""
+              :md="3"
+              :xs="8">
+              <el-form>
+                <el-form-item
+                  :label="$t('m.Auto_Remove_the_Blank_at_the_End_of_Code')"
+                  v-if="!problem.isRemote"
+                  style="display: inline-block;margin-left: 10px;"
                 >
-                </el-switch>
-              </el-form-item>
+                  <el-switch
+                    v-model="problem.isRemoveEndBlank"
+                    active-text=""
+                    inactive-text=""
+                  >
+                  </el-switch>
+                </el-form-item>
+              </el-form>
             </el-col>
             <el-col
-              :md="12"
+              :md="3"
+              :xs="8">
+              <el-form>
+                <el-form-item :label="$t('m.Publish_the_Judging_Result_of_Test_Data')"
+                              style="display: inline-block;margin-left: 10px;">
+                  <el-switch
+                    v-model="problem.openCaseResult"
+                    active-text=""
+                    inactive-text=""
+                  >
+                  </el-switch>
+                </el-form-item>
+              </el-form>
+            </el-col>
+            <el-col
+              :md="3"
+              :xs="8">
+              <el-form>
+                <el-form-item :label="$t('m.Code_Shareable')"
+                              style="display: inline-block;margin-left: 10px;">
+                  <el-switch
+                    v-model="problem.codeShare"
+                    active-text=""
+                    inactive-text=""
+                  >
+                  </el-switch>
+                </el-form-item>
+              </el-form>
+            </el-col>
+            <el-col
+              :md="8"
               :xs="24"
             >
               <el-form-item :label="$t('m.Tags')">
@@ -284,31 +246,96 @@
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row>
-            <el-col
-              :md="24"
-              :xs="24"
-            >
+          <el-row :gutter="20">
+            <el-col :span="24">
               <el-form-item
-                :label="$t('m.Languages')"
-                :error="error.languages"
+                prop="description"
+                :label="$t('m.Description')"
                 required
               >
-                <el-checkbox-group v-model="problemLanguages">
-                  <el-tooltip
-                    class="spj-radio"
-                    v-for="lang in allLanguage"
-                    :key="lang.name"
-                    effect="dark"
-                    :content="lang.description"
-                    placement="top-start"
-                  >
-                    <el-checkbox :label="lang.name"></el-checkbox>
-                  </el-tooltip>
-                </el-checkbox-group>
+                <Editor :value.sync="problem.description"></Editor>
               </el-form-item>
             </el-col>
           </el-row>
+          <el-row :gutter="20">
+            <el-col
+              :md="8"
+              :xs="24"
+            >
+              <el-form-item
+                :label="$t('m.Time_Limit') + '(ms)'"
+                required
+              >
+                <el-input
+                  type="Number"
+                  :placeholder="$t('m.Time_Limit')"
+                  v-model="problem.timeLimit"
+                  :disabled="problem.isRemote"
+                ></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col
+              :md="8"
+              :xs="24"
+            >
+              <el-form-item
+                :label="$t('m.Memory_Limit') + '(mb)'"
+                required
+              >
+                <el-input
+                  type="Number"
+                  :placeholder="$t('m.Memory_Limit')"
+                  v-model="problem.memoryLimit"
+                  :disabled="problem.isRemote"
+                ></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col
+              :md="8"
+              :xs="24"
+            >
+              <el-form-item
+                :label="$t('m.Stack_Limit') + '(mb)'"
+                required
+              >
+                <el-input
+                  type="Number"
+                  :placeholder="$t('m.Stack_Limit')"
+                  v-model="problem.stackLimit"
+                  :disabled="problem.isRemote"
+                ></el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20">
+            <el-col :span="24">
+              <el-form-item
+                prop="input_description"
+                :label="$t('m.Input')"
+                required
+              >
+                <Editor :value.sync="problem.input"></Editor>
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item
+                prop="output_description"
+                :label="$t('m.Output')"
+                required
+              >
+                <Editor :value.sync="problem.output"></Editor>
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item
+                style="margin-top: 20px"
+                :label="$t('m.Hint')"
+              >
+                <Editor :value.sync="problem.hint"></Editor>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
           <div>
             <div class="panel-title home-title">
               {{ $t('m.Problem_Examples') }}
@@ -393,6 +420,260 @@
             >{{ $t('m.Add_Example') }}
             </el-button>
           </div>
+
+          <el-row
+            :gutter="20"
+            v-if="!problem.isRemote"
+          >
+            <div class="panel-title home-title">
+              {{ $t('m.Judge_Samples') }}
+              <el-popover
+                placement="right"
+                trigger="hover"
+              >
+                <p>{{ $t('m.Sample_Tips') }}</p>
+                <i
+                  slot="reference"
+                  class="el-icon-question"
+                ></i>
+              </el-popover>
+            </div>
+
+            <el-form-item required>
+              <el-radio-group
+                v-model="problem.judgeCaseMode"
+                @change="switchJudgeCaseMode"
+              >
+                <el-radio :label="JUDGE_CASE_MODE.DEFAULT">
+                  {{ problem.type == 1 ? $t('m.OI_Judge_Case_Default_Mode'): $t('m.ACM_Judge_Case_Default_Mode')}}
+                </el-radio>
+                <template v-if="problem.type == 1">
+                  <el-radio :label="JUDGE_CASE_MODE.SUBTASK_LOWEST">{{$t('m.Judge_Case_Subtask_Lowest_Mode')}}</el-radio>
+                  <el-radio :label="JUDGE_CASE_MODE.SUBTASK_AVERAGE">{{$t('m.Judge_Case_Subtask_Average_Mode')}}</el-radio>
+                </template>
+                <template v-else>
+                  <el-radio :label="JUDGE_CASE_MODE.ERGODIC_WITHOUT_ERROR">{{$t('m.Judge_Case_Ergodic_Without_Error_Mode')}}</el-radio>
+                </template>
+              </el-radio-group>
+            </el-form-item>
+
+            <el-switch
+              v-model="problem.isUploadCase"
+              :active-text="$t('m.Use_Upload_File')"
+              :inactive-text="$t('m.Use_Manual_Input')"
+              style="margin: 10px 0"
+            >
+            </el-switch>
+
+            <div v-show="problem.isUploadCase">
+              <el-col :span="24">
+                <el-form-item :error="error.testcase">
+                  <el-upload
+                    :action="uploadFileUrl+'&mode='+problem.judgeCaseMode"
+                    name="file"
+                    :show-file-list="true"
+                    :on-success="uploadSucceeded"
+                    :on-error="uploadFailed"
+                  >
+                    <el-button
+                      size="small"
+                      type="primary"
+                      icon="el-icon-upload"
+                    >{{ $t('m.Choose_File') }}</el-button>
+                  </el-upload>
+                </el-form-item>
+              </el-col>
+              <el-col :span="24">
+                <vxe-table
+                  ref="xTable"
+                  stripe
+                  auto-resize
+                  :data="problem.testCaseScore"
+                  align="center"
+                  :sort-config="{trigger: 'cell',
+                  defaultSort: {field: 'groupNum', order: 'asc'},
+                  orders: ['desc', 'asc', null],
+                  sortMethod: customSortMethod}"
+                >
+                  <vxe-table-column
+                    field="index"
+                    title="#"
+                    width="60"
+                    sortable
+                  ></vxe-table-column>
+                  <vxe-table-column
+                    field="input"
+                    :title="$t('m.Sample_Input_File')"
+                    min-width="100"
+                  >
+                  </vxe-table-column>
+                  <vxe-table-column
+                    field="output"
+                    :title="$t('m.Sample_Output_File')"
+                    min-width="100"
+                  >
+                  </vxe-table-column>
+                  <vxe-table-column
+                    v-if="problem.judgeCaseMode == JUDGE_CASE_MODE.SUBTASK_LOWEST
+                    || problem.judgeCaseMode == JUDGE_CASE_MODE.SUBTASK_AVERAGE"
+                    field="groupNum"
+                    :title="$t('m.Sample_Group_Num')"
+                    sortable
+                    min-width="100"
+                  >
+                    <template v-slot="{ row }">
+                      <el-input
+                        size="small"
+                        v-model="row.groupNum"
+                        @change="sortTestCaseList"
+                        type="number"
+                      ></el-input>
+                    </template>
+                  </vxe-table-column>
+                  <vxe-table-column
+                    field="score"
+                    :title="$t('m.Score')"
+                    v-if="problem.type == 1"
+                    min-width="100"
+                  >
+                    <template v-slot="{ row }">
+                      <el-input
+                        size="small"
+                        :placeholder="$t('m.Score')"
+                        v-model="row.score"
+                        :disabled="problem.type != 1"
+                        type="number"
+                      >
+                      </el-input>
+                    </template>
+                  </vxe-table-column>
+                </vxe-table>
+              </el-col>
+            </div>
+            <div v-show="!problem.isUploadCase">
+              <el-form-item
+                v-for="(sample, index) in problemSamples"
+                :key="'sample' + index"
+              >
+                <Accordion
+                  :title="$t('m.Problem_Sample') + (sample.index)"
+                  :isOpen="sample.isOpen ? true : false"
+                  :index="index"
+                  @changeVisible="changeSampleVisible"
+                >
+                  <el-button
+                    type="danger"
+                    size="small"
+                    icon="el-icon-delete"
+                    slot="header"
+                    @click="deleteSample(index)"
+                  >
+                    {{ $t('m.Delete') }}
+                  </el-button>
+                  <el-row :gutter="20">
+                    <el-col
+                      :xs="24"
+                      :md="12"
+                    >
+                      <el-form-item
+                        :label="$t('m.Sample_Input')"
+                        required
+                      >
+                        <el-input
+                          :rows="5"
+                          type="textarea"
+                          :placeholder="$t('m.Sample_Input')"
+                          v-model="sample.input"
+                        >
+                        </el-input>
+                      </el-form-item>
+                    </el-col>
+                    <el-col
+                      :xs="24"
+                      :md="12"
+                    >
+                      <el-form-item
+                        :label="$t('m.Sample_Output')"
+                        required
+                      >
+                        <el-input
+                          :rows="5"
+                          type="textarea"
+                          :placeholder="$t('m.Sample_Output')"
+                          v-model="sample.output"
+                        >
+                        </el-input>
+                      </el-form-item>
+                    </el-col>
+                    <el-col
+                      :span="24"
+                      v-show="problem.type == 1"
+                    >
+                      <el-form-item :label="$t('m.Score')">
+                        <el-input
+                          type="number"
+                          size="small"
+                          :placeholder="$t('m.Score')"
+                          v-model="sample.score"
+                        >
+                        </el-input>
+                      </el-form-item>
+                    </el-col>
+                    <el-col
+                      :span="24"
+                      v-show="problem.judgeCaseMode == JUDGE_CASE_MODE.SUBTASK_LOWEST
+                    || problem.judgeCaseMode == JUDGE_CASE_MODE.SUBTASK_AVERAGE"
+                    >
+                      <el-form-item :label="$t('m.Sample_Group_Num')">
+                        <el-input
+                          type="number"
+                          size="small"
+                          :placeholder="$t('m.Sample_Group_Num')"
+                          v-model="sample.groupNum"
+                          @change="sortManualProblemSampleList"
+                        >
+                        </el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                </Accordion>
+              </el-form-item>
+              <div class="add-sample-btn">
+                <el-button
+                  class="add-samples"
+                  @click="addSample()"
+                  icon="el-icon-plus"
+                  type="small"
+                >{{ $t('m.Add_Sample') }}
+                </el-button>
+              </div>
+            </div>
+          </el-row>
+          <el-row>
+            <el-col
+              :md="24"
+              :xs="24"
+            >
+              <el-form-item
+                :label="$t('m.Languages')"
+                :error="error.languages"
+                required
+              >
+                <el-checkbox-group v-model="problemLanguages">
+                  <el-tooltip
+                    class="spj-radio"
+                    v-for="lang in allLanguage"
+                    :key="lang.name"
+                    effect="dark"
+                    :content="lang.description"
+                    placement="top-start"
+                  >
+                    <el-checkbox :label="lang.name"></el-checkbox>
+                  </el-tooltip>
+                </el-checkbox-group>
+              </el-form-item>
+            </el-col>
+          </el-row>
           <template v-if="!problem.isRemote">
             <div class="panel-title home-title">
               {{ $t('m.Judge_Extra_File') }}
@@ -582,266 +863,13 @@
               </el-col>
             </el-row>
           </el-form-item>
-          <el-row
-            :gutter="20"
-            v-if="!problem.isRemote"
-          >
-            <div class="panel-title home-title">
-              {{ $t('m.Judge_Samples') }}
-              <el-popover
-                placement="right"
-                trigger="hover"
-              >
-                <p>{{ $t('m.Sample_Tips') }}</p>
-                <i
-                  slot="reference"
-                  class="el-icon-question"
-                ></i>
-              </el-popover>
-            </div>
-
-            <el-form-item required>
-              <el-radio-group
-                v-model="problem.judgeCaseMode"
-                @change="switchJudgeCaseMode"
-              >
-                <el-radio :label="JUDGE_CASE_MODE.DEFAULT">
-                  {{ problem.type == 1 ? $t('m.OI_Judge_Case_Default_Mode'): $t('m.ACM_Judge_Case_Default_Mode')}}
-                </el-radio>
-                <template v-if="problem.type == 1">
-                  <el-radio :label="JUDGE_CASE_MODE.SUBTASK_LOWEST">{{$t('m.Judge_Case_Subtask_Lowest_Mode')}}</el-radio>
-                  <el-radio :label="JUDGE_CASE_MODE.SUBTASK_AVERAGE">{{$t('m.Judge_Case_Subtask_Average_Mode')}}</el-radio>
-                </template>
-                <template v-else>
-                  <el-radio :label="JUDGE_CASE_MODE.ERGODIC_WITHOUT_ERROR">{{$t('m.Judge_Case_Ergodic_Without_Error_Mode')}}</el-radio>
-                </template>
-              </el-radio-group>
-            </el-form-item>
-
-            <el-switch
-              v-model="problem.isUploadCase"
-              :active-text="$t('m.Use_Upload_File')"
-              :inactive-text="$t('m.Use_Manual_Input')"
-              style="margin: 10px 0"
-            >
-            </el-switch>
-
-            <div v-show="problem.isUploadCase">
-              <el-col :span="24">
-                <el-form-item :error="error.testcase">
-                  <el-upload
-                    :action="uploadFileUrl+'&mode='+problem.judgeCaseMode"
-                    name="file"
-                    :show-file-list="true"
-                    :on-success="uploadSucceeded"
-                    :on-error="uploadFailed"
-                  >
-                    <el-button
-                      size="small"
-                      type="primary"
-                      icon="el-icon-upload"
-                    >{{ $t('m.Choose_File') }}</el-button>
-                  </el-upload>
-                </el-form-item>
-              </el-col>
-              <el-col :span="24">
-                <vxe-table
-                  ref="xTable"
-                  stripe
-                  auto-resize
-                  :data="problem.testCaseScore"
-                  align="center"
-                  :sort-config="{trigger: 'cell', 
-                  defaultSort: {field: 'groupNum', order: 'asc'}, 
-                  orders: ['desc', 'asc', null],
-                  sortMethod: customSortMethod}"
-                >
-                  <vxe-table-column
-                    field="index"
-                    title="#"
-                    width="60"
-                    sortable
-                  ></vxe-table-column>
-                  <vxe-table-column
-                    field="input"
-                    :title="$t('m.Sample_Input_File')"
-                    min-width="100"
-                  >
-                  </vxe-table-column>
-                  <vxe-table-column
-                    field="output"
-                    :title="$t('m.Sample_Output_File')"
-                    min-width="100"
-                  >
-                  </vxe-table-column>
-                  <vxe-table-column
-                  v-if="problem.judgeCaseMode == JUDGE_CASE_MODE.SUBTASK_LOWEST 
-                    || problem.judgeCaseMode == JUDGE_CASE_MODE.SUBTASK_AVERAGE"
-                    field="groupNum"
-                    :title="$t('m.Sample_Group_Num')"
-                    sortable
-                    min-width="100"
-                  >
-                    <template v-slot="{ row }">
-                      <el-input
-                        size="small"
-                        v-model="row.groupNum"
-                        @change="sortTestCaseList"
-                        type="number"
-                      ></el-input>
-                    </template>
-                  </vxe-table-column>
-                  <vxe-table-column
-                    field="score"
-                    :title="$t('m.Score')"
-                    v-if="problem.type == 1"
-                    min-width="100"
-                  >
-                    <template v-slot="{ row }">
-                      <el-input
-                        size="small"
-                        :placeholder="$t('m.Score')"
-                        v-model="row.score"
-                        :disabled="problem.type != 1"
-                        type="number"
-                      >
-                      </el-input>
-                    </template>
-                  </vxe-table-column>
-                </vxe-table>
-              </el-col>
-            </div>
-            <div v-show="!problem.isUploadCase">
-              <el-form-item
-                v-for="(sample, index) in problemSamples"
-                :key="'sample' + index"
-              >
-                <Accordion
-                  :title="$t('m.Problem_Sample') + (sample.index)"
-                  :isOpen="sample.isOpen ? true : false"
-                  :index="index"
-                  @changeVisible="changeSampleVisible"
-                >
-                  <el-button
-                    type="danger"
-                    size="small"
-                    icon="el-icon-delete"
-                    slot="header"
-                    @click="deleteSample(index)"
-                  >
-                    {{ $t('m.Delete') }}
-                  </el-button>
-                  <el-row :gutter="20">
-                    <el-col
-                      :xs="24"
-                      :md="12"
-                    >
-                      <el-form-item
-                        :label="$t('m.Sample_Input')"
-                        required
-                      >
-                        <el-input
-                          :rows="5"
-                          type="textarea"
-                          :placeholder="$t('m.Sample_Input')"
-                          v-model="sample.input"
-                        >
-                        </el-input>
-                      </el-form-item>
-                    </el-col>
-                    <el-col
-                      :xs="24"
-                      :md="12"
-                    >
-                      <el-form-item
-                        :label="$t('m.Sample_Output')"
-                        required
-                      >
-                        <el-input
-                          :rows="5"
-                          type="textarea"
-                          :placeholder="$t('m.Sample_Output')"
-                          v-model="sample.output"
-                        >
-                        </el-input>
-                      </el-form-item>
-                    </el-col>
-                    <el-col
-                      :span="24"
-                      v-show="problem.type == 1"
-                    >
-                      <el-form-item :label="$t('m.Score')">
-                        <el-input
-                          type="number"
-                          size="small"
-                          :placeholder="$t('m.Score')"
-                          v-model="sample.score"
-                        >
-                        </el-input>
-                      </el-form-item>
-                    </el-col>
-                    <el-col
-                      :span="24"
-                      v-show="problem.judgeCaseMode == JUDGE_CASE_MODE.SUBTASK_LOWEST 
-                    || problem.judgeCaseMode == JUDGE_CASE_MODE.SUBTASK_AVERAGE"
-                    >
-                      <el-form-item :label="$t('m.Sample_Group_Num')">
-                        <el-input
-                          type="number"
-                          size="small"
-                          :placeholder="$t('m.Sample_Group_Num')"
-                          v-model="sample.groupNum"
-                          @change="sortManualProblemSampleList"
-                        >
-                        </el-input>
-                      </el-form-item>
-                    </el-col>
-                  </el-row>
-                </Accordion>
-              </el-form-item>
-              <div class="add-sample-btn">
-                <el-button
-                  class="add-samples"
-                  @click="addSample()"
-                  icon="el-icon-plus"
-                  type="small"
-                >{{ $t('m.Add_Sample') }}
-                </el-button>
-              </div>
-            </div>
-          </el-row>
-          <el-form-item :label="$t('m.Source')">
-            <el-input
-              :placeholder="$t('m.Source')"
-              v-model="problem.source"
-            ></el-input>
-          </el-form-item>
-          <el-form-item
-            :label="$t('m.Auto_Remove_the_Blank_at_the_End_of_Code')"
-            v-if="!problem.isRemote"
-          >
-            <el-switch
-              v-model="problem.isRemoveEndBlank"
-              active-text=""
-              inactive-text=""
-            >
-            </el-switch>
-          </el-form-item>
-          <el-form-item :label="$t('m.Publish_the_Judging_Result_of_Test_Data')">
-            <el-switch
-              v-model="problem.openCaseResult"
-              active-text=""
-              inactive-text=""
-            >
-            </el-switch>
-          </el-form-item>
           <el-button
             type="primary"
             @click.native="submit()"
             size="small"
           >{{
-            $t('m.Save')
-          }}</el-button>
+              $t('m.Save')
+           }}</el-button>
         </el-form>
       </el-card>
     </el-col>
@@ -941,7 +969,7 @@ export default {
         hint: "",
         source: "",
         cid: null,
-        isRemoveEndBlank:false,
+        isRemoveEndBlank:true,
         openCaseResult: true,
         judgeMode: "default",
         judgeCaseMode: "default",
@@ -1036,7 +1064,7 @@ export default {
         hint: "",
         source: "",
         cid: null,
-        isRemoveEndBlank:false,
+        isRemoveEndBlank:true,
         openCaseResult: true,
         judgeMode: "default",
         judgeCaseMode: "default",
@@ -1540,7 +1568,7 @@ export default {
                 return;
               }
               if (
-                (this.problem.judgeCaseMode == this.JUDGE_CASE_MODE.SUBTASK_LOWEST 
+                (this.problem.judgeCaseMode == this.JUDGE_CASE_MODE.SUBTASK_LOWEST
                   || this.problem.judgeCaseMode == this.JUDGE_CASE_MODE.SUBTASK_AVERAGE
                 ) && this.problemSamples[i].groupNum == ""
               ) {
@@ -1592,7 +1620,7 @@ export default {
                 return;
               }
               if (
-                (this.problem.judgeCaseMode == this.JUDGE_CASE_MODE.SUBTASK_LOWEST 
+                (this.problem.judgeCaseMode == this.JUDGE_CASE_MODE.SUBTASK_LOWEST
                   || this.problem.judgeCaseMode == this.JUDGE_CASE_MODE.SUBTASK_AVERAGE
                 ) && problemSamples[i].groupNum == ""
               ) {
@@ -1681,7 +1709,7 @@ export default {
           if (problemLanguageList[i].name == lang.name) {
             problemLanguageList[i] = lang;
             if (this.codeTemplate[lang.name].status) {
-              if(this.codeTemplate[lang.name].code == null 
+              if(this.codeTemplate[lang.name].code == null
                 || this.codeTemplate[lang.name].code.length == 0){
                   mMessage.error(
                     lang.name +
