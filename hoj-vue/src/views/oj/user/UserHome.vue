@@ -1489,13 +1489,13 @@ export default {
             top: 180,
           }
         ],
-        tooltip: [
-          {
-            trigger: 'item',
-            // confine: true, // 将tooltip框限制在图表的区域内
-            appendToBody: true,
-          }, {}, {}
-        ],
+        // 必须是单个对象: 写成数组会在同一 ECharts 实例里创建多个 tooltip 组件视图,
+        // 触发 hideTip 无限互推(_pendingActions 永不排空), 鼠标悬停时整个页面卡死
+        tooltip: {
+          trigger: 'item',
+          // confine: true, // 将tooltip框限制在图表的区域内
+          appendToBody: true,
+        },
         radar: {
           indicator: [
             {name: '通过率\n(过题数/过题总提交数)', max: 1},
