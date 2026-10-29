@@ -41,81 +41,80 @@
                 fit="cover"
                 style="height: 135px; width: 100%"
               ></el-image>
-
-</template>
-                <template v-else>
-                  <el-image
-                    :src="defaultAvatar"
-                    @click="$emit('open-group', group.id)"
-                    fit="cover"
-                    style="height: 135px; width: 100%"
-                  ></el-image>
-                </template>
-                <el-link
-                  style="font-size: 16px"
-                  type="primary"
-                  :underline="false"
-                  @click="$emit('open-user', group.owner)"
-                  ><i class="el-icon-user-solid"></i> {{ group.owner }}
-                </el-link>
-              </el-card>
-            </el-col>
-            <el-col :span="17" :class="GROUP_TYPE_REVERSE[group.auth].name">
-              <el-card
-                :body-style="{ padding: '0px' }"
-                style="border-radius: 10px; height: 170px"
-              >
-                <div slot="header" style="height: 24px">
-                  <a class="group-name" @click="$emit('open-group', group.id)">
-                    <Marquee :val="group.name" :id="group.id"></Marquee>
-                  </a>
-                </div>
-                <div class="group-brief">
-                  <span>{{ group.brief }}</span>
-                </div>
-                <el-divider></el-divider>
-                <div style="font-size: 16px; padding: 3.5px">
-                  <span>
-                    <i class="el-icon-user-solid"></i>
-                    <i class="el-icon-close">{{ group.memberCount }}</i>
-                    <el-tooltip
-                      :content="$t('m.' + GROUP_TYPE_REVERSE[group.auth].tips)"
-                    >
-                      <el-tag
-                        class="group-auth"
-                        size="medium"
-                        :type="GROUP_TYPE_REVERSE[group.auth].color"
-                        effect="plain"
-                        @click="$emit('filter-auth', group.auth)"
-                      >
-                        {{
-                          $t('m.Group_' + GROUP_TYPE_REVERSE[group.auth].name)
-                        }}
-                      </el-tag>
-                    </el-tooltip>
-                    <el-tooltip :content="$t('m.Group_Hidden_Tips')">
-                      <el-tag
-                        v-if="!group.visible"
-                        class="group-auth"
-                        size="medium"
-                        type="primary"
-                        effect="plain"
-                      >
-                        {{ $t('m.Group_Hidden') }}
-                      </el-tag>
-                    </el-tooltip>
-                  </span>
-                  <span style="float: right">
-                    <i class="el-icon-time">
-                      {{ group.gmtCreate | localtime((format = 'YYYY-MM-DD')) }}
-                    </i>
-                  </span>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
+            </template>
+            <template v-else>
+              <el-image
+                :src="defaultAvatar"
+                @click="$emit('open-group', group.id)"
+                fit="cover"
+                style="height: 135px; width: 100%"
+              ></el-image>
+            </template>
+            <el-link
+              style="font-size: 16px"
+              type="primary"
+              :underline="false"
+              @click="$emit('open-user', group.owner)"
+              ><i class="el-icon-user-solid"></i> {{ group.owner }}
+            </el-link>
+          </el-card>
+        </el-col>
+        <el-col :span="17" :class="GROUP_TYPE_REVERSE[group.auth].name">
+          <el-card
+            :body-style="{ padding: '0px' }"
+            style="border-radius: 10px; height: 170px"
+          >
+            <div slot="header" style="height: 24px">
+              <a class="group-name" @click="$emit('open-group', group.id)">
+                <Marquee :val="group.name" :id="group.id"></Marquee>
+              </a>
+            </div>
+            <div class="group-brief">
+              <span>{{ group.brief }}</span>
+            </div>
+            <el-divider></el-divider>
+            <div style="font-size: 16px; padding: 3.5px">
+              <span>
+                <i class="el-icon-user-solid"></i>
+                <i class="el-icon-close">{{ group.memberCount }}</i>
+                <el-tooltip
+                  :content="$t('m.' + GROUP_TYPE_REVERSE[group.auth].tips)"
+                >
+                  <el-tag
+                    class="group-auth"
+                    size="medium"
+                    :type="GROUP_TYPE_REVERSE[group.auth].color"
+                    effect="plain"
+                    @click="$emit('filter-auth', group.auth)"
+                  >
+                    {{
+                      $t('m.Group_' + GROUP_TYPE_REVERSE[group.auth].name)
+                    }}
+                  </el-tag>
+                </el-tooltip>
+                <el-tooltip :content="$t('m.Group_Hidden_Tips')">
+                  <el-tag
+                    v-if="!group.visible"
+                    class="group-auth"
+                    size="medium"
+                    type="primary"
+                    effect="plain"
+                  >
+                    {{ $t('m.Group_Hidden') }}
+                  </el-tag>
+                </el-tooltip>
+              </span>
+              <span style="float: right">
+                <i class="el-icon-time">
+                  {{ group.gmtCreate | localtime((format = 'YYYY-MM-DD')) }}
+                </i>
+              </span>
+            </div>
+          </el-card>
         </el-col>
       </el-row>
+    </el-col>
+  </el-row>
 </template>
 
 <script>

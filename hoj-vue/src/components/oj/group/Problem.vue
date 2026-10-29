@@ -23,14 +23,14 @@
           label-position="top"
         >
           <el-row :gutter="20">
-          <el-col :md="8" :xs="24">
-            <el-form-item prop="author" :label="$t('m.Problem_Author_Account')">
-              <el-input v-model.trim="problem.author" :placeholder="$t('m.Problem_Author_Placeholder')" maxlength="100" clearable></el-input>
-              <p class="author-tip">{{ $t('m.Problem_Author_Tips') }}</p>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
+            <el-col :md="8" :xs="24">
+              <el-form-item prop="author" :label="$t('m.Problem_Author_Account')">
+                <el-input v-model.trim="problem.author" :placeholder="$t('m.Problem_Author_Placeholder')" maxlength="100" clearable></el-input>
+                <p class="author-tip">{{ $t('m.Problem_Author_Tips') }}</p>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="20">
             <el-col :span="6">
               <el-form-item
                 prop="problemId"

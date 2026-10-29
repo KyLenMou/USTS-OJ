@@ -102,6 +102,19 @@ class OIScoreTimeRankTest {
     }
 
     @Test
+    void recentZeroAtTheSameSecondReplacesTheEarlierScoreWithoutDoubleCounting() {
+        contest.setOiRankScoreType("Recent").setOiRankScoreTime(false);
+        ContestRecordVO earlier = record("alice", "A", 50, 100, 1);
+        ContestRecordVO latest = record("alice", "A", 0, 100, 1);
+        latest.setFirstScoreTime(20L);
+        OIContestRankVO row = rank(false, earlier, latest).get(0);
+        assertEquals(0, row.getTotalScore());
+        assertEquals(0, row.getSubmissionInfo().get("A"));
+        assertEquals(20L, row.getScoreTimeInfo().get("A"));
+        assertEquals(0L, row.getScoreTime());
+    }
+
+    @Test
     void unsubmittedProblemsHaveNeitherScoreNorTime() {
         for (String scoreType : Arrays.asList("Highest", "Recent")) {
             contest.setOiRankScoreType(scoreType).setOiRankScoreTime("Highest".equals(scoreType));

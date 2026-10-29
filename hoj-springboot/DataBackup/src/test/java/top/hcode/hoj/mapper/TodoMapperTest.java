@@ -15,7 +15,7 @@ class TodoMapperTest {
     void zeroScoresUseTheEarliestSubmissionRegardlessOfItsScore() {
         for (String method : Arrays.asList("getOIContestRecordByRecentSubmission", "getOIContestRecordByHighestSubmission")) {
             String sql = statement("ContestRecordMapper", method, oiParams()).getSql().replaceAll("\\s+", " ");
-            assertTrue(sql.contains("CASE WHEN cr.score = 0 THEN"));
+            assertTrue(sql.contains("CASE WHEN COALESCE(cr.score, 0) = 0 THEN"));
             assertTrue(sql.contains("MIN(first_submit.time)"));
             assertTrue(sql.contains("first_submit.cid = cr.cid"));
             assertTrue(sql.contains("first_submit.uid = cr.uid"));
@@ -23,6 +23,19 @@ class TodoMapperTest {
             assertTrue(sql.contains("first_submit.cpid = cr.cpid"));
             assertTrue(sql.contains("first_submit.time BETWEEN 0 AND cr.time"));
             assertFalse(sql.contains("first_submit.score ="));
+        }
+    }
+
+    @Test
+    void judgedSubmissionsWithoutScoresAreKeptAsZeroInBothModes() {
+        for (String method : Arrays.asList("getOIContestRecordByRecentSubmission", "getOIContestRecordByHighestSubmission")) {
+            String sql = statement("ContestRecordMapper", method, oiParams()).getSql().replaceAll("\\s+", " ");
+            assertTrue(sql.contains("COALESCE(cr.score, 0) AS score"));
+            assertTrue(sql.contains("cr.status IS NOT NULL"));
+            if (method.contains("Highest")) {
+                assertTrue(sql.contains("MAX(COALESCE(score, 0))"));
+                assertTrue(sql.contains("t.score = COALESCE(cr.score, 0)"));
+            }
         }
     }
 

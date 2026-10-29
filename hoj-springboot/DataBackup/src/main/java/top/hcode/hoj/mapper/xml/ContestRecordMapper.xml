@@ -51,8 +51,8 @@
 
     <select id="getOIContestRecordByRecentSubmission" resultType="top.hcode.hoj.pojo.vo.ContestRecordVO">
         SELECT cr.id,cr.cid,cr.uid,cr.pid,cr.cpid,cr.display_id,cr.submit_id,u.username,cr.status,cr.submit_time,
-        cr.time,cr.score,cr.use_time,cr.checked,cr.gmt_create,cr.gmt_modified,
-        CASE WHEN cr.score = 0 THEN <include refid="oiFirstSubmissionTime"/>
+        cr.time,COALESCE(cr.score, 0) AS score,cr.use_time,cr.checked,cr.gmt_create,cr.gmt_modified,
+        CASE WHEN COALESCE(cr.score, 0) = 0 THEN <include refid="oiFirstSubmissionTime"/>
         ELSE (SELECT MIN(first_score.time) FROM contest_record first_score
          WHERE first_score.cid = cr.cid AND first_score.uid = cr.uid
          AND first_score.pid = cr.pid AND first_score.cpid = cr.cpid
@@ -71,16 +71,16 @@
 
     <select id="getOIContestRecordByHighestSubmission" resultType="top.hcode.hoj.pojo.vo.ContestRecordVO">
         SELECT cr.id,cr.cid,cr.uid,cr.pid,cr.cpid,cr.display_id,cr.submit_id,u.username,cr.status,cr.submit_time,
-        cr.time,cr.score,cr.use_time,cr.checked,cr.gmt_create,cr.gmt_modified,
-        CASE WHEN cr.score = 0 THEN <include refid="oiFirstSubmissionTime"/>
+        cr.time,COALESCE(cr.score, 0) AS score,cr.use_time,cr.checked,cr.gmt_create,cr.gmt_modified,
+        CASE WHEN COALESCE(cr.score, 0) = 0 THEN <include refid="oiFirstSubmissionTime"/>
         ELSE cr.time END AS first_score_time,
         u.gender,u.realname as realname,u.avatar,u.school,u.nickname
         FROM
-        (SELECT uid,pid,cpid,MAX(score) AS score FROM contest_record cr
+        (SELECT uid,pid,cpid,MAX(COALESCE(score, 0)) AS score FROM contest_record cr
         <where><include refid="oiRecordFilter"/></where>
         GROUP BY uid,pid,cpid) t,
         contest_record cr,user_info u WHERE t.uid = cr.uid AND t.pid =cr.pid
-        AND t.cpid = cr.cpid AND u.uuid = cr.uid AND t.score = cr.score
+        AND t.cpid = cr.cpid AND u.uuid = cr.uid AND t.score = COALESCE(cr.score, 0)
           AND <include refid="oiRecordFilter"/>
           ORDER BY cr.time ASC, cr.id ASC
     </select>

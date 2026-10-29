@@ -406,9 +406,9 @@ public class ContestCalculateRankManager {
         if (useCache) {
             String key = null;
             if (isContainsAfterContestJudge){
-                key = Constants.Contest.CONTEST_RANK_CAL_RESULT_CACHE.getName() + "_first_submit_contains_after_" + contest.getOiRankScoreType() + "_" + contest.getOiRankScoreTime() + "_" + contest.getId();
+                key = Constants.Contest.CONTEST_RANK_CAL_RESULT_CACHE.getName() + "_score_submission_v2_contains_after_" + contest.getOiRankScoreType() + "_" + contest.getOiRankScoreTime() + "_" + contest.getId();
             }else{
-                key = Constants.Contest.CONTEST_RANK_CAL_RESULT_CACHE.getName() + "_first_submit_" + contest.getOiRankScoreType() + "_" + contest.getOiRankScoreTime() + "_" + contest.getId();
+                key = Constants.Contest.CONTEST_RANK_CAL_RESULT_CACHE.getName() + "_score_submission_v2_" + contest.getOiRankScoreType() + "_" + contest.getOiRankScoreTime() + "_" + contest.getId();
             }
             orderResultList = (List<OIContestRankVO>) redisUtils.get(key);
             if (orderResultList == null) {
