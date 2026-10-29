@@ -222,6 +222,12 @@
             </el-switch>
           </el-form-item>
         </el-col>
+        <el-col :md="24" :xs="24">
+          <el-form-item :label="$t('m.Group_Archive')">
+            <el-switch v-model="group.archived" :active-text="$t('m.Archived_Groups')" :inactive-text="$t('m.Active_Groups')"></el-switch>
+            <p class="archive-tip">{{ $t('m.Group_Archive_Tips') }}</p>
+          </el-form-item>
+        </el-col>
         <el-col :span="24">
           <el-form-item
             :label="$t('m.Group_Description')"
@@ -479,6 +485,7 @@ export default {
 </script>
 
 <style scoped>
+.archive-tip { color: #909399; font-size: 12px; line-height: 1.6; margin: 8px 0 0; }
 .section-title {
   font-size: 21px;
   font-weight: 500;

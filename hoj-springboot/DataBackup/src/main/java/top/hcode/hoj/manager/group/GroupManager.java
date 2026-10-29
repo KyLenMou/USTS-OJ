@@ -54,7 +54,7 @@ public class GroupManager {
     @Autowired
     private NacosSwitchConfig nacosSwitchConfig;
 
-    public IPage<GroupVO> getGroupList(Integer limit, Integer currentPage, String keyword, Integer auth, boolean onlyMine) {
+    public IPage<GroupVO> getGroupList(Integer limit, Integer currentPage, String keyword, Integer auth, Boolean onlyMine, Boolean archived) {
         AccountProfile userRolesVo = (AccountProfile) SecurityUtils.getSubject().getPrincipal();
 
         if (currentPage == null || currentPage < 1) currentPage = 1;
@@ -71,7 +71,7 @@ public class GroupManager {
             uid = userRolesVo.getUid();
             isRoot = SecurityUtils.getSubject().hasRole("root");
         }
-        return groupEntityService.getGroupList(limit, currentPage, keyword, auth, uid, onlyMine, isRoot);
+        return groupEntityService.getGroupList(limit, currentPage, keyword, auth, uid, Boolean.TRUE.equals(onlyMine), isRoot, Boolean.TRUE.equals(archived));
     }
 
     public Group getGroup(Long gid) throws StatusNotFoundException, StatusForbiddenException {
@@ -170,6 +170,7 @@ public class GroupManager {
             }
 
         }
+        group.setArchived(false);
         group.setOwner(userRolesVo.getUsername());
         group.setUid(userRolesVo.getUid());
 

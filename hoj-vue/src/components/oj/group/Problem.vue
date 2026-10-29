@@ -23,6 +23,14 @@
           label-position="top"
         >
           <el-row :gutter="20">
+          <el-col :md="8" :xs="24">
+            <el-form-item prop="author" :label="$t('m.Problem_Author_Account')">
+              <el-input v-model.trim="problem.author" :placeholder="$t('m.Problem_Author_Placeholder')" maxlength="100" clearable></el-input>
+              <p class="author-tip">{{ $t('m.Problem_Author_Tips') }}</p>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
             <el-col :span="6">
               <el-form-item
                 prop="problemId"
@@ -945,6 +953,7 @@ export default {
         pid: null,
       },
       problem: {
+        author: "",
         id: null,
         title: "",
         problemId: "",
@@ -1040,6 +1049,7 @@ export default {
         }
       }
       this.problem = this.reProblem = {
+        author: this.userInfo.username,
         id: null,
         problemId: "",
         title: "",
@@ -1683,7 +1693,7 @@ export default {
         this.apiMethod === "addGroupProblem" ||
         this.apiMethod === "addGroupContestProblem"
       ) {
-        this.problem.author = this.userInfo.username;
+        this.problem.author = this.problem.author || this.userInfo.username;
       }
       var ojName = "ME";
       if (this.problem.isRemote) {
@@ -1808,6 +1818,7 @@ export default {
 </script>
 
 <style scoped>
+.author-tip { color: #909399; font-size: 12px; line-height: 1.6; margin: 8px 0 0; }
 /deep/.el-form-item__label {
   padding: 0 !important;
 }

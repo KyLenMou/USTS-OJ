@@ -2,6 +2,12 @@ package top.hcode.hoj.validator;
 
 import cn.hutool.core.util.StrUtil;
 import org.springframework.stereotype.Component;
+import org.apache.shiro.SecurityUtils;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import top.hcode.hoj.dao.user.UserInfoEntityService;
+import top.hcode.hoj.pojo.entity.user.UserInfo;
+import top.hcode.hoj.shiro.AccountProfile;
+import java.util.Objects;
 import top.hcode.hoj.common.exception.StatusFailException;
 import top.hcode.hoj.pojo.entity.problem.Problem;
 import top.hcode.hoj.utils.Constants;
@@ -17,6 +23,29 @@ public class ProblemValidator {
 
     @Resource
     private CommonValidator commonValidator;
+
+    @Resource
+    private UserInfoEntityService userInfoEntityService;
+
+    public void validateAuthor(Problem problem, Problem original) throws StatusFailException {
+        String author = problem.getAuthor();
+        if (StrUtil.isBlank(author)) {
+            author = original == null
+                    ? ((AccountProfile) SecurityUtils.getSubject().getPrincipal()).getUsername()
+                    : original.getAuthor();
+        } else {
+            author = author.trim();
+        }
+        if (original != null && Objects.equals(author, original.getAuthor())) {
+            problem.setAuthor(author);
+            return;
+        }
+        UserInfo user = userInfoEntityService.getOne(new QueryWrapper<UserInfo>().eq("username", author));
+        if (user == null) {
+            throw new StatusFailException("出题人账号不存在，请输入已注册的用户名！");
+        }
+        problem.setAuthor(user.getUsername());
+    }
 
     public void validateProblem(Problem problem) throws StatusFailException {
         if (problem == null) {

@@ -140,10 +140,18 @@ public class ContestFileManager {
                     null,
                     null,
                     isContainsAfterContestJudge);
+            List<List<String>> head = fileEntityService.getContestRankExcelHead(contestProblemDisplayIDList, false);
+            List<List<Object>> rows = fileEntityService.changOIContestRankToExcelRowList(oiContestRankVOList, contestProblemDisplayIDList, contest.getRankShowName());
+            if (Boolean.TRUE.equals(contest.getOiRankScoreTime())) {
+                head.add(6, Collections.singletonList("Score Attainment Time (s)"));
+                for (int i = 0; i < rows.size(); i++) {
+                    rows.get(i).add(6, oiContestRankVOList.get(i).getScoreTime());
+                }
+            }
             EasyExcel.write(response.getOutputStream())
-                    .head(fileEntityService.getContestRankExcelHead(contestProblemDisplayIDList, false))
+                    .head(head)
                     .sheet("rank")
-                    .doWrite(fileEntityService.changOIContestRankToExcelRowList(oiContestRankVOList, contestProblemDisplayIDList, contest.getRankShowName()));
+                    .doWrite(rows);
         }
     }
 

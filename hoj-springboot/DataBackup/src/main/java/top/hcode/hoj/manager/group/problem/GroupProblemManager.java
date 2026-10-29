@@ -200,6 +200,7 @@ public class GroupProblemManager {
 
         problemDto.setTags(tagList);
 
+        problemValidator.validateAuthor(problemDto.getProblem(), null);
         boolean isOk = problemEntityService.adminAddProblem(problemDto);
         if (!isOk) {
             throw new StatusFailException("添加失败");
@@ -239,6 +240,7 @@ public class GroupProblemManager {
             throw new StatusForbiddenException("对不起，您无权限操作！");
         }
 
+        problemValidator.validateAuthor(problemDto.getProblem(), problem);
         problemDto.getProblem().setProblemId(group.getShortName() + problemDto.getProblem().getProblemId());
         String problemId = problemDto.getProblem().getProblemId().toUpperCase();
 

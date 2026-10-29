@@ -15,14 +15,14 @@ export default {
   data() {
     return {
       timer: null,
+      moveTimer: null,
       text: '',
     };
   },
   created() {},
   mounted() {
-    let timer = setTimeout(() => {
+    this.moveTimer = setTimeout(() => {
       this.move();
-      clearTimeout(timer);
     }, 1000);
     for (let item of this.val) {
       this.text += item;
@@ -48,6 +48,7 @@ export default {
     },
   },
   beforeDestroy() {
+    clearTimeout(this.moveTimer);
     clearInterval(this.timer);
   },
 };

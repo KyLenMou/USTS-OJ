@@ -1093,3 +1093,19 @@ DELIMITER ;
 CALL add_Contest_allow_end_submit ;
 
 DROP PROCEDURE add_Contest_allow_end_submit;
+
+/* 2026.10.29 OI成绩达成时间排序与团队归档。升级应用前执行。 */
+DROP PROCEDURE IF EXISTS add_Contest_ScoreTime_Group_Archive;
+DELIMITER $$
+CREATE PROCEDURE add_Contest_ScoreTime_Group_Archive ()
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'contest' AND COLUMN_NAME = 'oi_rank_score_time') THEN
+        ALTER TABLE `contest` ADD COLUMN `oi_rank_score_time` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'OI同分时按最高成绩最早达成时间排序';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'group' AND COLUMN_NAME = 'archived') THEN
+        ALTER TABLE `group` ADD COLUMN `archived` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否归档';
+    END IF;
+END$$
+DELIMITER ;
+CALL add_Contest_ScoreTime_Group_Archive();
+DROP PROCEDURE add_Contest_ScoreTime_Group_Archive;

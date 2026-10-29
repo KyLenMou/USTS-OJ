@@ -1,4 +1,18 @@
 export const m = {
+  OI_Rank_Tie_Breaker: 'OI rank tie breaker',
+  OI_Rank_Score_Time: 'Earliest highest score',
+  OI_Problem_First_Score_Time: 'Time from contest start when this score was first reached',
+  OI_Problem_First_Submission_Time: 'Time from contest start of the earliest submission',
+  OI_Rank_Run_Time: 'Total execution time',
+  OI_Rank_Score_Time_Tips: 'Uses the highest score for each problem. Ties are ordered by when the highest total score was first reached, measured from contest start.',
+  Active_Groups: 'Active teams',
+  Archived_Groups: 'Archived teams',
+  Group_Archive: 'Archive team',
+  Group_Archive_Tips: 'Archived teams are collapsed in the team list. Members retain access. Turn this off to restore the team to the active list.',
+  Problem_Author_Account: 'Author account',
+  Problem_Author_Placeholder: 'Enter a registered username, or leave blank for the default author',
+  Problem_Author_Tips: 'New problems use your account by default. Changing the author also transfers author editing permissions.',
+
 
   // /src/common/api.js
   Query_error_unable_to_find_the_resource_to_request: 'Query error! Unable to find the resource to request!',

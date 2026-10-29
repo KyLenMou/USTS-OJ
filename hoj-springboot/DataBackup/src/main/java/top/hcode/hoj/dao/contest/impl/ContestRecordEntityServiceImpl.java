@@ -144,9 +144,9 @@ public class ContestRecordEntityServiceImpl extends ServiceImpl<ContestRecordMap
         } else {
             String key = null;
             if (isContainsAfterContestJudge) {
-                key = Constants.Contest.OI_CONTEST_RANK_CACHE.getName() + "_contains_after_" + oiRankScoreType + "_" + cid;
+                key = Constants.Contest.OI_CONTEST_RANK_CACHE.getName() + "_first_submit_contains_after_" + oiRankScoreType + "_" + cid;
             } else {
-                key = Constants.Contest.OI_CONTEST_RANK_CACHE.getName() + "_" + oiRankScoreType + "_" + cid;
+                key = Constants.Contest.OI_CONTEST_RANK_CACHE.getName() + "_first_submit_" + oiRankScoreType + "_" + cid;
             }
             List<ContestRecordVO> oiContestRecordList = (List<ContestRecordVO>) redisUtils.get(key);
             if (oiContestRecordList == null) {

@@ -28,6 +28,7 @@ import top.hcode.hoj.pojo.entity.judge.Judge;
 import top.hcode.hoj.pojo.entity.problem.Problem;
 import top.hcode.hoj.shiro.AccountProfile;
 import top.hcode.hoj.utils.Constants;
+import top.hcode.hoj.validator.ProblemValidator;
 
 import java.io.File;
 import java.util.*;
@@ -56,6 +57,9 @@ public class AdminContestProblemManager {
 
     @Autowired
     private ContestEntityService contestEntityService;
+
+    @Autowired
+    private ProblemValidator problemValidator;
 
     public HashMap<String, Object> getProblemList(Integer limit, Integer currentPage, String keyword,
                                                   Long cid, Integer problemType, String oj) {
@@ -206,6 +210,7 @@ public class AdminContestProblemManager {
         }
         // 设置为比赛题目
         problemDto.getProblem().setAuth(3);
+        problemValidator.validateAuthor(problemDto.getProblem(), null);
         boolean isOk = problemEntityService.adminAddProblem(problemDto);
         if (isOk) { // 添加成功
             // 顺便返回新的题目id，好下一步添加外键操作
@@ -221,8 +226,12 @@ public class AdminContestProblemManager {
 
         boolean isRoot = SecurityUtils.getSubject().hasRole("root");
         boolean isProblemAdmin = SecurityUtils.getSubject().hasRole("problem_admin");
-        // 只有超级管理员和题目管理员、题目创建者才能操作
-        if (!isRoot && !isProblemAdmin && !userRolesVo.getUsername().equals(problemDto.getProblem().getAuthor())) {
+        Problem original = problemEntityService.getById(problemDto.getProblem().getId());
+        if (original == null) {
+            throw new StatusFailException("该题目不存在！");
+        }
+        // 编辑权限依据已保存的作者，允许当前作者转交题目。
+        if (!isRoot && !isProblemAdmin && !userRolesVo.getUsername().equals(original.getAuthor())) {
             throw new StatusForbiddenException("对不起，你无权限修改题目！");
         }
 
@@ -238,6 +247,7 @@ public class AdminContestProblemManager {
         // 记录修改题目的用户
         problemDto.getProblem().setModifiedUser(userRolesVo.getUsername());
 
+        problemValidator.validateAuthor(problemDto.getProblem(), original);
         boolean isOk = problemEntityService.adminUpdateProblem(problemDto);
         if (!isOk) {
             throw new StatusFailException("修改失败");

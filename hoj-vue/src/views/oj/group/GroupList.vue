@@ -75,122 +75,8 @@
       </el-card>
     </el-col>
     <el-col :span="24" v-loading="loading">
-      <el-row :gutter="20">
-        <el-col
-          :xxl="4"
-          :xl="6"
-          :lg="8"
-          :md="8"
-          :sm="12"
-          :xs="24"
-          v-if="!groupList.length"
-          style="margin-top: 10px; margin-bottom: 10px"
-        >
-          <el-card
-            :body-style="{ padding: '0px' }"
-            style="border-radius: 10px;"
-          >
-            <el-empty :description="$t('m.No_Groups')"></el-empty>
-          </el-card>
-        </el-col>
-        <el-col
-          :xxl="4"
-          :xl="6"
-          :lg="8"
-          :md="8"
-          :sm="12"
-          :xs="24"
-          v-for="group in groupList"
-          :key="group.id"
-          style="margin-top: 10px; margin-bottom: 10px"
-        >
-          <el-row :gutter="1">
-            <el-col :span="7" style="text-align: center;">
-              <el-card
-                :body-style="{ padding: '0px' }"
-                style="border-radius: 10px; height: 170px"
-              >
-                <template v-if="group.avatar">
-                  <el-image
-                    :src="group.avatar"
-                    @click="toGroup(group.id)"
-                    fit="cover"
-                    style="height: 135px; width: 100%"
-                  ></el-image>
-                </template>
-                <template v-else>
-                  <el-image
-                    :src="defaultAvatar"
-                    @click="toGroup(group.id)"
-                    fit="cover"
-                    style="height: 135px; width: 100%"
-                  ></el-image>
-                </template>
-                <el-link
-                  style="font-size: 16px"
-                  type="primary"
-                  :underline="false"
-                  @click="toUserHome(group.owner)"
-                  ><i class="el-icon-user-solid"></i> {{ group.owner }}
-                </el-link>
-              </el-card>
-            </el-col>
-            <el-col :span="17" :class="GROUP_TYPE_REVERSE[group.auth].name">
-              <el-card
-                :body-style="{ padding: '0px' }"
-                style="border-radius: 10px; height: 170px"
-              >
-                <div slot="header" style="height: 24px">
-                  <a class="group-name" @click="toGroup(group.id)">
-                    <Marquee :val="group.name" :id="group.id"></Marquee>
-                  </a>
-                </div>
-                <div class="group-brief">
-                  <span>{{ group.brief }}</span>
-                </div>
-                <el-divider></el-divider>
-                <div style="font-size: 16px; padding: 3.5px">
-                  <span>
-                    <i class="el-icon-user-solid"></i>
-                    <i class="el-icon-close">{{ group.memberCount }}</i>
-                    <el-tooltip
-                      :content="$t('m.' + GROUP_TYPE_REVERSE[group.auth].tips)"
-                    >
-                      <el-tag
-                        class="group-auth"
-                        size="medium"
-                        :type="GROUP_TYPE_REVERSE[group.auth].color"
-                        effect="plain"
-                        @click="filterByAuth(group.auth)"
-                      >
-                        {{
-                          $t('m.Group_' + GROUP_TYPE_REVERSE[group.auth].name)
-                        }}
-                      </el-tag>
-                    </el-tooltip>
-                    <el-tooltip :content="$t('m.Group_Hidden_Tips')">
-                      <el-tag
-                        v-if="!group.visible"
-                        class="group-auth"
-                        size="medium"
-                        type="primary"
-                        effect="plain"
-                      >
-                        {{ $t('m.Group_Hidden') }}
-                      </el-tag>
-                    </el-tooltip>
-                  </span>
-                  <span style="float: right">
-                    <i class="el-icon-time">
-                      {{ group.gmtCreate | localtime((format = 'YYYY-MM-DD')) }}
-                    </i>
-                  </span>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-        </el-col>
-      </el-row>
+      <h3 class="group-section-title">{{ $t('m.Active_Groups') }}</h3>
+      <GroupCards :group-list="groupList" @open-group="toGroup" @open-user="toUserHome" @filter-auth="filterByAuth" />
     </el-col>
     <Pagination
       :total="total"
@@ -202,6 +88,20 @@
       :layout="'prev, pager, next, sizes'"
       :pageSizes="[9, 15, 30, 60, 120]"
     ></Pagination>
+    <el-col :span="24" class="archived-groups">
+      <el-collapse v-model="expandedSections">
+        <el-collapse-item name="archived">
+          <template slot="title">
+            <span class="group-section-title"><i class="el-icon-folder-opened"></i> {{ $t('m.Archived_Groups') }}</span>
+            <el-tag size="small" type="info" class="archive-count">{{ archivedTotal }}</el-tag>
+          </template>
+          <div v-loading="archivedLoading">
+            <GroupCards v-if="expandedSections.includes('archived')" :group-list="archivedGroupList" @open-group="toGroup" @open-user="toUserHome" @filter-auth="filterByAuth" />
+            <Pagination :total="archivedTotal" :page-size="query.limit" :current.sync="archivedPage" @on-change="getArchivedGroupList" :layout="'prev, pager, next'" />
+          </div>
+        </el-collapse-item>
+      </el-collapse>
+    </el-col>
     <el-dialog
       :title="$t('m.Create_Group')"
       :visible.sync="showEditGroupDialog"
@@ -339,13 +239,13 @@ import mMessage from '@/common/message';
 import { mapGetters } from 'vuex';
 import Pagination from '@/components/oj/common/Pagination';
 import Editor from '@/components/admin/Editor';
-import Marquee from '@/components/oj/common/Marquee';
+import GroupCards from '@/components/oj/group/GroupCards';
 export default {
   name: 'GroupList',
   components: {
     Pagination,
     Editor,
-    Marquee,
+    GroupCards,
   },
   data() {
     return {
@@ -358,6 +258,11 @@ export default {
         onlyMine: false,
       },
       total: 0,
+      archivedTotal: 0,
+      archivedPage: 1,
+      archivedGroupList: [],
+      archivedLoading: false,
+      expandedSections: [],
       group: {
         avatar: '',
         name: '',
@@ -445,7 +350,6 @@ export default {
       backupGroup: null,
       groupList: [],
       loading: false,
-      defaultAvatar: require('@/assets/default.jpg'),
     };
   },
   mounted() {
@@ -460,11 +364,14 @@ export default {
       this.query.auth = route.auth;
       this.query.keyword = route.keyword || '';
       this.query.onlyMine = route.onlyMine + '' == 'true' ? true : false;
-      this.query.currentPage = route.currentPage || 1;
-      this.query.limit = route.limit || 15;
+      this.query.currentPage = Number(route.currentPage) || 1;
+      this.query.limit = Number(route.limit) || 15;
+      this.archivedPage = 1;
       this.getGroupList();
+      this.getArchivedGroupList();
     },
     onPageSizeChange(pageSize) {
+      this.query.currentPage = 1;
       this.query.limit = pageSize;
       this.handleRouter();
     },
@@ -477,14 +384,17 @@ export default {
       this.handleRouter();
     },
     filterByAuth(auth) {
+      this.query.currentPage = 1;
       this.query.auth = auth;
       this.handleRouter();
     },
     handleOnlyMine(onlyMine) {
+      this.query.currentPage = 1;
       this.query.onlyMine = onlyMine;
       this.handleRouter();
     },
     handleAuth(auth) {
+      this.query.currentPage = 1;
       this.query.auth = auth;
       this.handleRouter();
     },
@@ -505,6 +415,19 @@ export default {
         (err) => {
           this.loading = false;
         }
+      );
+    },
+    getArchivedGroupList(page = this.archivedPage) {
+      this.archivedPage = page;
+      this.archivedLoading = true;
+      const query = { ...this.query, currentPage: page, archived: true };
+      api.getGroupList(page, this.query.limit, query).then(
+        (res) => {
+          this.archivedGroupList = res.data.data.records;
+          this.archivedTotal = res.data.data.total;
+          this.archivedLoading = false;
+        },
+        () => { this.archivedLoading = false; }
       );
     },
     toGroup(groupID) {
@@ -623,69 +546,11 @@ section {
 .category-item:hover {
   cursor: pointer;
 }
-.group-name {
-  font-size: 1.15rem;
-  font-weight: 600;
-}
-
-/deep/ .Public .el-card {
-  border-color: rgba(103, 194, 58, 0.5);
-}
-
-/deep/ .Public .el-card__header {
-  background-color: rgba(103, 194, 58, 0.2);
-}
-
-.Public .group-name {
-  color: rgb(103, 194, 58);
-}
-
-/deep/ .Protected .el-card {
-  border-color: rgba(230, 162, 60, 0.5);
-}
-
-/deep/ .Protected .el-card__header {
-  background-color: rgba(230, 162, 60, 0.2);
-}
-
-.Protected .group-name {
-  color: rgb(230, 162, 60);
-}
-
-/deep/ .Private .el-card {
-  border-color: rgba(245, 108, 108, 0.5);
-}
-
-/deep/ .Private .el-card__header {
-  background-color: rgba(245, 108, 108, 0.2);
-}
-
-.Private .group-name {
-  color: rgb(245, 108, 108);
-}
-
-.group-brief {
-  height: 86px;
-  font-size: 14px;
-  padding: 0 10px;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  overflow: hidden;
-}
-.group-auth {
-  margin-left: 3px;
-  margin-top: -1px;
-  font-size: 14px;
-}
-.group-auth:hover {
-  cursor: pointer;
-}
-/deep/ .el-card__header {
-  padding: 10px;
-  margin-bottom: 4px;
-}
-/deep/ .el-divider--horizontal {
-  margin: 0;
+.group-section-title { font-size: 16px; font-weight: 600; color: #606266; margin: 10px 0; }
+.archived-groups { margin-bottom: 30px; }
+.archive-count { margin-left: 10px; }
+@media (max-width: 767px) {
+  section { flex-wrap: wrap; gap: 8px; }
+  .find-group { font-size: 1.3em; }
 }
 </style>

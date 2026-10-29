@@ -26,8 +26,8 @@ public class GroupServiceImpl implements GroupService {
     private GroupManager groupManager;
 
     @Override
-    public CommonResult<IPage<GroupVO>> getGroupList(Integer limit, Integer currentPage, String keyword, Integer auth, Boolean onlyMine) {
-        return CommonResult.successResponse(groupManager.getGroupList(limit, currentPage, keyword, auth, onlyMine));
+    public CommonResult<IPage<GroupVO>> getGroupList(Integer limit, Integer currentPage, String keyword, Integer auth, Boolean onlyMine, Boolean archived) {
+        return CommonResult.successResponse(groupManager.getGroupList(limit, currentPage, keyword, auth, onlyMine, archived));
     }
 
     @Override

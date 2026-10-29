@@ -1,4 +1,18 @@
 export const m = {
+  OI_Rank_Tie_Breaker: 'OI 榜单同分排序',
+  OI_Rank_Score_Time: '最高成绩最早达成时间',
+  OI_Problem_First_Score_Time: '首次达到该分数的用时（从比赛开始计算）',
+  OI_Problem_First_Submission_Time: '最早提交用时（从比赛开始计算）',
+  OI_Rank_Run_Time: '程序运行总耗时',
+  OI_Rank_Score_Time_Tips: '开启后使用每题最高得分；总分相同时，先达到最高总分的选手排名靠前。用时从比赛开始计算。',
+  Active_Groups: '活跃团队',
+  Archived_Groups: '已归档团队',
+  Group_Archive: '团队归档',
+  Group_Archive_Tips: '将不活跃的旧团队归档后，团队列表会折叠展示，成员仍可正常访问。关闭即可恢复到活跃团队。',
+  Problem_Author_Account: '出题人账号',
+  Problem_Author_Placeholder: '请输入已注册的用户名，留空使用默认作者',
+  Problem_Author_Tips: '新建时默认使用当前账号。修改作者会同时转交作者编辑权限。',
+
 
   // /src/common/api.js
   Query_error_unable_to_find_the_resource_to_request: '查询错误，找不到要请求的资源！',
