@@ -116,12 +116,24 @@
                 class="radio"
                 v-model="contest.oiRankScoreType"
                 label="Recent"
+                @change="contest.oiRankScoreTime = false"
               >{{ $t('m.OI_Rank_Score_Type_Recent') }}</el-radio>
               <el-radio
                 class="radio"
                 v-model="contest.oiRankScoreType"
                 label="Highest"
               >{{ $t('m.OI_Rank_Score_Type_Highest') }}</el-radio>
+            </el-form-item>
+          </el-col>
+          <el-col :md="24" :xs="24" v-if="contest.type == 1">
+            <el-form-item :label="$t('m.OI_Rank_Tie_Breaker')">
+              <el-switch
+                v-model="contest.oiRankScoreTime"
+                :active-text="$t('m.OI_Rank_Score_Time')"
+                :inactive-text="$t('m.OI_Rank_Run_Time')"
+                @change="value => { if (value) contest.oiRankScoreType = 'Highest'; }"
+              ></el-switch>
+              <p class="oi-rank-tip">{{ $t('m.OI_Rank_Score_Time_Tips') }}</p>
             </el-form-item>
           </el-col>
         </el-row>
@@ -671,6 +683,7 @@ export default {
         accountLimitRule: "",
         starAccount: [],
         oiRankScoreType: "Recent",
+        oiRankScoreTime: false,
         awardType: 0,
         awardConfigList: [
           {
@@ -1023,6 +1036,7 @@ export default {
 };
 </script>
 <style scoped>
+.oi-rank-tip { color: #909399; font-size: 12px; line-height: 1.6; margin: 8px 0 0; }
 .userPreview {
   padding-left: 10px;
   padding-top: 20px;

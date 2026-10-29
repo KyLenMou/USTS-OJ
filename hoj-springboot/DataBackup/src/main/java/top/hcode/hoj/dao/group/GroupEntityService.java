@@ -17,5 +17,5 @@ public interface GroupEntityService extends IService<Group> {
                                 Integer auth,
                                 String uid,
                                 Boolean onlyMine,
-                                Boolean isRoot);
+                                Boolean isRoot, Boolean archived);
 }

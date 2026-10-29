@@ -146,6 +146,7 @@ public class AdminProblemManager {
             throw new StatusFailException("该题目的Problem ID已存在，请更换！");
         }
 
+        problemValidator.validateAuthor(problemDto.getProblem(), null);
         boolean isOk = problemEntityService.adminAddProblem(problemDto);
         if (!isOk) {
             throw new StatusFailException("添加失败");
@@ -162,11 +163,16 @@ public class AdminProblemManager {
 
         boolean isRoot = SecurityUtils.getSubject().hasRole("root");
         boolean isProblemAdmin = SecurityUtils.getSubject().hasRole("problem_admin");
-        // 只有超级管理员和题目管理员、题目创建者才能操作
-        if (!isRoot && !isProblemAdmin && !userRolesVo.getUsername().equals(problemDto.getProblem().getAuthor())) {
+        Problem original = problemEntityService.getById(problemDto.getProblem().getId());
+        if (original == null) {
+            throw new StatusFailException("该题目不存在！");
+        }
+        // 编辑权限依据已保存的作者，允许当前作者转交题目。
+        if (!isRoot && !isProblemAdmin && !userRolesVo.getUsername().equals(original.getAuthor())) {
             throw new StatusForbiddenException("对不起，你无权限修改题目！");
         }
 
+        problemValidator.validateAuthor(problemDto.getProblem(), original);
         String problemId = problemDto.getProblem().getProblemId().toUpperCase();
         QueryWrapper<Problem> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("problem_id", problemId);

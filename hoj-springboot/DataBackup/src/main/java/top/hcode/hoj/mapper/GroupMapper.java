@@ -23,5 +23,6 @@ public interface GroupMapper extends BaseMapper<Group> {
                                @Param("auth") Integer auth,
                                @Param("uid") String uid,
                                @Param("onlyMine") Boolean onlyMine,
-                               @Param("isRoot") Boolean isRoot);
+                               @Param("isRoot") Boolean isRoot,
+                               @Param("archived") Boolean archived);
 }

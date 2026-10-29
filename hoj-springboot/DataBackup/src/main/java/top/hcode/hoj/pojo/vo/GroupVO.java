@@ -42,6 +42,9 @@ public class GroupVO {
     @ApiModelProperty(value = "是否隐藏")
     private Boolean visible;
 
+    @ApiModelProperty(value = "是否归档，归档团队默认折叠展示")
+    private Boolean archived;
+
     @ApiModelProperty(value = "该团队的总人数")
     private Integer memberCount;
 

@@ -303,7 +303,10 @@
                 style="color:rgb(87, 163, 243);"
               >{{ row.totalScore }}</a>
               <br />
-              <span class="problem-time">({{ row.totalTime }}ms)</span>
+              <el-tooltip v-if="contest.oiRankScoreTime" :content="$t('m.OI_Rank_Score_Time')">
+                <span class="problem-time">({{ formatScoreTime(row.scoreTime) }})</span>
+              </el-tooltip>
+              <span v-else class="problem-time">({{ row.totalTime }}ms)</span>
             </span>
           </template>
         </vxe-table-column>
@@ -363,15 +366,17 @@
           </template>
           <template v-slot="{ row }">
             <div
-              v-if="row.submissionInfo[problem.displayId]"
+              v-if="row.submissionInfo[problem.displayId] != null"
               class="submission-hover"
             >
               <span>{{ row.submissionInfo[problem.displayId] }}</span>
               <br />
-              <span
-                v-if="row.timeInfo && row.timeInfo[problem.displayId] != null"
-                style="font-size:12px;"
-              >({{ row.timeInfo[problem.displayId] }}ms)</span>
+              <el-tooltip
+                v-if="row.scoreTimeInfo && row.scoreTimeInfo[problem.displayId] != null"
+                :content="$t(row.submissionInfo[problem.displayId] === 0 ? 'm.OI_Problem_First_Submission_Time' : 'm.OI_Problem_First_Score_Time')"
+              >
+                <span style="font-size:12px;">({{ formatScoreTime(row.scoreTimeInfo[problem.displayId]) }})</span>
+              </el-tooltip>
             </div>
           </template>
         </vxe-table-column>
@@ -393,6 +398,7 @@ import Avatar from "vue-avatar";
 import { mapActions } from "vuex";
 import ContestRankMixin from "./contestRankMixin";
 import utils from "@/common/utils";
+import time from "@/common/time";
 const Pagination = () => import("@/components/oj/common/Pagination");
 const RankBox = () => import("@/components/oj/common/RankBox");
 export default {
@@ -623,6 +629,9 @@ export default {
       this.dataRank = dataRank;
     },
 
+    formatScoreTime(seconds) {
+      return time.secondFormat(seconds || 0);
+    },
     downloadRankCSV() {
       utils.downloadFile(
         `/api/file/download-contest-rank?cid=${

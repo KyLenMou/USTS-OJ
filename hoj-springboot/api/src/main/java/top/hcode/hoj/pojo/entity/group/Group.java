@@ -54,6 +54,9 @@ public class Group implements Serializable  {
     @ApiModelProperty(value = "团队是否可见")
     private Boolean visible;
 
+    @ApiModelProperty(value = "是否归档，归档团队默认折叠展示")
+    private Boolean archived;
+
     @ApiModelProperty(value = "是否封禁或删除 0正常，1无效")
     private Integer status;
 

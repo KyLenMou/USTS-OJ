@@ -58,8 +58,14 @@ public class OIContestRankVO {
     @ApiModelProperty(value = "提交总耗时，只有满分的提交才会统计")
     private Integer totalTime;
 
+    @ApiModelProperty(value = "首次达到最高总分距比赛开始的秒数")
+    private Long scoreTime;
+
     @ApiModelProperty(value = "OI的题对应提交得分")
     private HashMap<String, Integer> submissionInfo;
+
+    @ApiModelProperty(value = "每题首次达分用时，零分取最早提交时间，未提交的题目不记录")
+    private HashMap<String, Long> scoreTimeInfo;
 
     @ApiModelProperty(value = "OI的题得满分后对应提交最优耗时")
     private HashMap<String, Integer> timeInfo;

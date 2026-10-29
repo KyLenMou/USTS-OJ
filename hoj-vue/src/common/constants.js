@@ -332,9 +332,9 @@ export function buildContestRankConcernedKey(contestID) {
 
 export const OTHER_OJ_LOGO = {
   NowCoder: require('@/assets/NowCoder.png'),
-  CodeForces: require('@/assets/CodeForces.png'),
-  LeetCode: require('@/assets/LeetCode.png'),
-  AcWing: require('@/assets/AcWing.png'),
+  CodeForces: require('@/assets/codeforces.png'),
+  LeetCode: require('@/assets/leetcode.png'),
+  AcWing: require('@/assets/acwing.png'),
   LuoGu: require('@/assets/LuoGu.png'),
   AtCoder: require('@/assets/AtCoder.png'),
 }

@@ -147,6 +147,7 @@ public class GroupContestProblemManager {
 
         problemDto.setTags(tagList);
 
+        problemValidator.validateAuthor(problemDto.getProblem(), null);
         boolean isOk = problemEntityService.adminAddProblem(problemDto);
         if (isOk) {
             return MapUtil.builder().put("pid", problemDto.getProblem().getId()).map();

@@ -30,8 +30,9 @@ public class GroupController {
                                                      @RequestParam(value = "currentPage", required = false) Integer currentPage,
                                                      @RequestParam(value = "keyword", required = false) String keyword,
                                                      @RequestParam(value = "auth", required = false) Integer auth,
-                                                     @RequestParam(value = "onlyMine", required = false) Boolean onlyMine) {
-        return groupService.getGroupList(limit, currentPage, keyword, auth, onlyMine);
+                                                     @RequestParam(value = "onlyMine", required = false) Boolean onlyMine,
+                                                     @RequestParam(value = "archived", defaultValue = "false") Boolean archived) {
+        return groupService.getGroupList(limit, currentPage, keyword, auth, onlyMine, archived);
     }
 
     @GetMapping("/get-group-detail")

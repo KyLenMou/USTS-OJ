@@ -51,6 +51,11 @@ public class ContestValidator {
             }
         }
 
+        if (Boolean.TRUE.equals(adminContestVO.getOiRankScoreTime())
+                && !Objects.equals(Constants.Contest.OI_RANK_HIGHEST_SCORE.getName(), adminContestVO.getOiRankScoreType())) {
+            throw new StatusFailException("按最高成绩达成时间排序时，请选择最高得分(Highest)！");
+        }
+
         if (!Objects.equals(Constants.Contest.AUTH_PUBLIC.getCode(), adminContestVO.getAuth())
                 && !Objects.equals(Constants.Contest.AUTH_PRIVATE.getCode(), adminContestVO.getAuth())
                 && !Objects.equals(Constants.Contest.AUTH_PROTECT.getCode(), adminContestVO.getAuth())) {

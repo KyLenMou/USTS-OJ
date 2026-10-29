@@ -25,84 +25,64 @@
         ORDER BY c.checked ASC,c.submit_time ASC
     </select>
 
+    <sql id="oiRecordFilter">
+        <choose>
+            <when test="externalCidList != null and externalCidList.size() > 0">
+                (cr.cid = #{cid} OR cr.cid in
+                <foreach collection="externalCidList" item="id" open="(" separator="," close=")">#{id}</foreach>)
+            </when>
+            <otherwise>cr.cid = #{cid}</otherwise>
+        </choose>
+        AND cr.status IS NOT NULL
+        <if test="contestCreatorUid != null">AND cr.uid != #{contestCreatorUid}</if>
+        <choose>
+            <when test="isOpenSealRank">AND cr.time BETWEEN 0 AND #{sealTime}</when>
+            <when test="isContainsAfterContestJudge">AND cr.time >= 0</when>
+            <otherwise>AND cr.time BETWEEN 0 AND #{endTime}</otherwise>
+        </choose>
+    </sql>
+
+    <sql id="oiFirstSubmissionTime">
+        (SELECT MIN(first_submit.time) FROM contest_record first_submit
+         WHERE first_submit.cid = cr.cid AND first_submit.uid = cr.uid
+         AND first_submit.pid = cr.pid AND first_submit.cpid = cr.cpid
+         AND first_submit.time BETWEEN 0 AND cr.time)
+    </sql>
+
     <select id="getOIContestRecordByRecentSubmission" resultType="top.hcode.hoj.pojo.vo.ContestRecordVO">
         SELECT cr.id,cr.cid,cr.uid,cr.pid,cr.cpid,cr.display_id,cr.submit_id,u.username,cr.status,cr.submit_time,
-        cr.time,cr.score,cr.use_time,cr.checked,cr.gmt_create,cr.gmt_modified,
+        cr.time,COALESCE(cr.score, 0) AS score,cr.use_time,cr.checked,cr.gmt_create,cr.gmt_modified,
+        CASE WHEN COALESCE(cr.score, 0) = 0 THEN <include refid="oiFirstSubmissionTime"/>
+        ELSE (SELECT MIN(first_score.time) FROM contest_record first_score
+         WHERE first_score.cid = cr.cid AND first_score.uid = cr.uid
+         AND first_score.pid = cr.pid AND first_score.cpid = cr.cpid
+         AND first_score.score = cr.score AND first_score.status IS NOT NULL
+         AND first_score.time BETWEEN 0 AND cr.time) END AS first_score_time,
         u.gender,u.realname as realname,u.avatar,u.school,u.nickname
         FROM
-        (SELECT uid,pid,cpid,MAX(time) AS time FROM contest_record
-        <where>
-            <if test="externalCidList == null or externalCidList.size() == 0">
-                cid=#{cid}
-            </if>
-            <if test="externalCidList != null and externalCidList.size() > 0">
-                (
-                    cr.cid = #{cid}
-                    OR cr.cid in
-                    <foreach collection="externalCidList" item="id" open="(" separator="," close=")">
-                        #{id}
-                    </foreach>
-                )
-            </if>
-            AND status IS NOT NULL
-            <if test="contestCreatorUid!=null">
-                AND uid!=#{contestCreatorUid}
-            </if>
-            <choose>
-                <when test="isOpenSealRank">
-                    AND `time` BETWEEN 0 AND #{sealTime}
-                </when>
-                <when test="isContainsAfterContestJudge">
-                    AND `time` >= 0
-                </when>
-                <otherwise>
-                    AND `time` BETWEEN 0 AND #{endTime}
-                </otherwise>
-            </choose>
-        </where>
+        (SELECT uid,pid,cpid,MAX(time) AS time FROM contest_record cr
+        <where><include refid="oiRecordFilter"/></where>
         GROUP BY uid,pid,cpid) t,
         contest_record cr,user_info u WHERE t.uid = cr.uid AND t.pid =cr.pid
         AND t.cpid = cr.cpid AND u.uuid = cr.uid AND t.time = cr.time
+          AND <include refid="oiRecordFilter"/>
+          ORDER BY cr.time ASC, cr.id ASC
     </select>
 
     <select id="getOIContestRecordByHighestSubmission" resultType="top.hcode.hoj.pojo.vo.ContestRecordVO">
         SELECT cr.id,cr.cid,cr.uid,cr.pid,cr.cpid,cr.display_id,cr.submit_id,u.username,cr.status,cr.submit_time,
-        cr.time,cr.score,cr.use_time,cr.checked,cr.gmt_create,cr.gmt_modified,
+        cr.time,COALESCE(cr.score, 0) AS score,cr.use_time,cr.checked,cr.gmt_create,cr.gmt_modified,
+        CASE WHEN COALESCE(cr.score, 0) = 0 THEN <include refid="oiFirstSubmissionTime"/>
+        ELSE cr.time END AS first_score_time,
         u.gender,u.realname as realname,u.avatar,u.school,u.nickname
         FROM
-        (SELECT uid,pid,cpid,MAX(score) AS score FROM contest_record
-        <where>
-            <if test="externalCidList == null or externalCidList.size() == 0">
-                cid=#{cid}
-            </if>
-            <if test="externalCidList != null and externalCidList.size() > 0">
-                (
-                    cr.cid = #{cid}
-                    OR cr.cid in
-                    <foreach collection="externalCidList" item="id" open="(" separator="," close=")">
-                        #{id}
-                    </foreach>
-                )
-            </if>
-            AND status IS NOT NULL
-            <if test="contestCreatorUid!=null">
-                AND uid!=#{contestCreatorUid}
-            </if>
-            <choose>
-                <when test="isOpenSealRank">
-                    AND `time` BETWEEN 0 AND #{sealTime}
-                </when>
-                <when test="isContainsAfterContestJudge">
-                    AND `time` >= 0
-                </when>
-                <otherwise>
-                    AND `time` BETWEEN 0 AND #{endTime}
-                </otherwise>
-            </choose>
-        </where>
+        (SELECT uid,pid,cpid,MAX(COALESCE(score, 0)) AS score FROM contest_record cr
+        <where><include refid="oiRecordFilter"/></where>
         GROUP BY uid,pid,cpid) t,
         contest_record cr,user_info u WHERE t.uid = cr.uid AND t.pid =cr.pid
-        AND t.cpid = cr.cpid AND u.uuid = cr.uid AND t.score = cr.score
+        AND t.cpid = cr.cpid AND u.uuid = cr.uid AND t.score = COALESCE(cr.score, 0)
+          AND <include refid="oiRecordFilter"/>
+          ORDER BY cr.time ASC, cr.id ASC
     </select>
 
 

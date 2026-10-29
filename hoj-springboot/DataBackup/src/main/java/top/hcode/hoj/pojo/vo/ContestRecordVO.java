@@ -66,6 +66,9 @@ public class ContestRecordVO implements Serializable {
     @ApiModelProperty(value = "OI比赛的得分")
     private Integer score;
 
+    @ApiModelProperty(value = "首次取得该提交分数距比赛开始的秒数，零分取最早提交时间")
+    private Long firstScoreTime;
+
     @ApiModelProperty(value = "提交耗时")
     private Integer useTime;
 

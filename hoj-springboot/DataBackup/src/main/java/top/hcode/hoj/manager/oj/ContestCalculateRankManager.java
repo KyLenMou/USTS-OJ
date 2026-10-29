@@ -406,9 +406,9 @@ public class ContestCalculateRankManager {
         if (useCache) {
             String key = null;
             if (isContainsAfterContestJudge){
-                key = Constants.Contest.CONTEST_RANK_CAL_RESULT_CACHE.getName() + "_contains_after_" + contest.getId();
+                key = Constants.Contest.CONTEST_RANK_CAL_RESULT_CACHE.getName() + "_score_submission_v2_contains_after_" + contest.getOiRankScoreType() + "_" + contest.getOiRankScoreTime() + "_" + contest.getId();
             }else{
-                key = Constants.Contest.CONTEST_RANK_CAL_RESULT_CACHE.getName() + "_" + contest.getId();
+                key = Constants.Contest.CONTEST_RANK_CAL_RESULT_CACHE.getName() + "_score_submission_v2_" + contest.getOiRankScoreType() + "_" + contest.getOiRankScoreTime() + "_" + contest.getId();
             }
             orderResultList = (List<OIContestRankVO>) redisUtils.get(key);
             if (orderResultList == null) {
@@ -464,9 +464,11 @@ public class ContestCalculateRankManager {
                 if (rankNum == 1) {
                     currentOIRankVo.setRank(rankNum);
                 } else {
-                    // 当前用户的程序总运行时间和总得分跟前一个用户一样的话，同时前一个不应该为打星用户，排名则一样
+                    // 与排序使用相同的第二关键字判定并列名次。
                     if (lastOIRankVo.getTotalScore().equals(currentOIRankVo.getTotalScore())
-                            && lastOIRankVo.getTotalTime().equals(currentOIRankVo.getTotalTime())) {
+                            && (Boolean.TRUE.equals(contest.getOiRankScoreTime())
+                                ? Objects.equals(lastOIRankVo.getScoreTime(), currentOIRankVo.getScoreTime())
+                                : lastOIRankVo.getTotalTime().equals(currentOIRankVo.getTotalTime()))) {
                         currentOIRankVo.setRank(lastOIRankVo.getRank());
                     } else {
                         currentOIRankVo.setRank(rankNum);
@@ -533,6 +535,8 @@ public class ContestCalculateRankManager {
         HashMap<String, Integer> uidMapIndex = new HashMap<>();
 
         HashMap<String, HashMap<String, Integer>> uidMapTime = new HashMap<>();
+
+        HashMap<String, HashMap<String, Long>> uidMapScoreTime = new HashMap<>();
 
         boolean isHighestRankScore = Constants.Contest.OI_RANK_HIGHEST_SCORE.getName().equals(contest.getOiRankScoreType());
 
@@ -603,9 +607,16 @@ public class ContestCalculateRankManager {
             HashMap<String, Integer> submissionInfo = oiContestRankVo.getSubmissionInfo();
             Integer score = submissionInfo.get(contestRecord.getDisplayId());
             if (isHighestRankScore) {
-                if (score == null) {
-                    oiContestRankVo.setTotalScore(oiContestRankVo.getTotalScore() + contestRecord.getScore());
-                    submissionInfo.put(contestRecord.getDisplayId(), contestRecord.getScore());
+                Integer currentScore = contestRecord.getScore();
+                if (currentScore != null && (score == null || currentScore > score)) {
+                    oiContestRankVo.setTotalScore(oiContestRankVo.getTotalScore() - (score == null ? 0 : score) + currentScore);
+                    submissionInfo.put(contestRecord.getDisplayId(), currentScore);
+                    uidMapScoreTime.computeIfAbsent(contestRecord.getUid(), key -> new HashMap<>())
+                            .put(contestRecord.getDisplayId(), contestRecord.getFirstScoreTime());
+                } else if (currentScore != null && currentScore.equals(score)) {
+                    // 关联比赛可能返回同一展示题号的多个成绩；保留最高分首次达成的时间。
+                    uidMapScoreTime.get(contestRecord.getUid())
+                            .merge(contestRecord.getDisplayId(), contestRecord.getFirstScoreTime(), Math::min);
                 }
             } else {
                 if (contestRecord.getScore() != null) {
@@ -616,6 +627,10 @@ public class ContestCalculateRankManager {
                     }
                 }
                 submissionInfo.put(contestRecord.getDisplayId(), contestRecord.getScore());
+                if (contestRecord.getScore() != null) {
+                    uidMapScoreTime.computeIfAbsent(contestRecord.getUid(), key -> new HashMap<>())
+                            .put(contestRecord.getDisplayId(), contestRecord.getFirstScoreTime());
+                }
             }
 
         }
@@ -630,15 +645,21 @@ public class ContestCalculateRankManager {
                     sumTime += time == null ? 0 : time;
                 }
             }
+            HashMap<String, Long> scoreTimes = uidMapScoreTime.get(oiContestRankVo.getUid());
+            long scoreTime = scoreTimes == null ? 0L : scoreTimes.entrySet().stream()
+                    .filter(entry -> oiContestRankVo.getSubmissionInfo().get(entry.getKey()) > 0)
+                    .mapToLong(Map.Entry::getValue).max().orElse(0L);
+            oiContestRankVo.setScoreTime(scoreTime);
+            oiContestRankVo.setScoreTimeInfo(scoreTimes);
             oiContestRankVo.setTotalTime(sumTime);
             oiContestRankVo.setTimeInfo(pidMapTime);
         }
 
-        // 根据总得分进行降序,再根据总时耗升序排序
-        List<OIContestRankVO> orderResultList = result.stream()
-                .sorted(Comparator.comparing(OIContestRankVO::getTotalScore, Comparator.reverseOrder())
-                        .thenComparing(OIContestRankVO::getTotalTime, Comparator.naturalOrder()))
-                .collect(Collectors.toList());
+        Comparator<OIContestRankVO> comparator = Comparator.comparing(OIContestRankVO::getTotalScore, Comparator.reverseOrder());
+        comparator = Boolean.TRUE.equals(contest.getOiRankScoreTime())
+                ? comparator.thenComparing(OIContestRankVO::getScoreTime)
+                : comparator.thenComparing(OIContestRankVO::getTotalTime);
+        List<OIContestRankVO> orderResultList = result.stream().sorted(comparator).collect(Collectors.toList());
         return orderResultList;
     }
 

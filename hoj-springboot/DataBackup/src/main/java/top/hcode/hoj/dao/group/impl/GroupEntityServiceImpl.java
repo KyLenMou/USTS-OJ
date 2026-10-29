@@ -30,9 +30,9 @@ public class GroupEntityServiceImpl extends ServiceImpl<GroupMapper, Group> impl
                                        Integer auth,
                                        String uid,
                                        Boolean onlyMine,
-                                       Boolean isRoot) {
+                                       Boolean isRoot, Boolean archived) {
         IPage<GroupVO> iPage = new Page<>(currentPage, limit);
-        List<GroupVO> groupList = groupMapper.getGroupList(iPage, keyword, auth, uid, onlyMine,isRoot);
+        List<GroupVO> groupList = groupMapper.getGroupList(iPage, keyword, auth, uid, onlyMine, isRoot, archived);
 
         return iPage.setRecords(groupList);
     }

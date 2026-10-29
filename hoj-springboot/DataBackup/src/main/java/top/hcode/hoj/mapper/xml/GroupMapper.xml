@@ -12,6 +12,7 @@
         <result column="owner" property="owner"></result>
         <result column="auth" property="auth"></result>
         <result column="visible" property="visible"></result>
+        <result column="archived" property="archived"></result>
         <result column="member_count" property="memberCount"></result>
         <result column="gmt_create" property="gmtCreate"></result>
     </resultMap>
@@ -20,7 +21,7 @@
         SELECT g.*, count(distinct gm.uid) as member_count
         FROM group_member gm, `group` g
         <where>
-            g.status = 0 and g.id = gm.gid and (gm.auth = 3 or gm.auth = 4 or gm.auth = 5)
+            g.status = 0 and g.archived = #{archived} and g.id = gm.gid and (gm.auth = 3 or gm.auth = 4 or gm.auth = 5)
             <if test="isRoot == false">
                 <if test="uid == null || uid == ''">
                     and g.visible = true
